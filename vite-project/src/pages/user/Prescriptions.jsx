@@ -1,0 +1,115 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { prescriptionAPI } from "../../api/api";
+
+export default function Prescriptions() {
+  const navigate = useNavigate();
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    fetchPrescriptions();
+  }, []);
+
+  const fetchPrescriptions = async () => {
+    try {
+      setLoading(true);
+      console.log("📤 [USER PRESCRIPTIONS] Fetching user prescriptions from API...");
+      const response = await prescriptionAPI.getPrescriptions();
+      console.log("✅ [USER PRESCRIPTIONS] Prescriptions received from backend:", response.data);
+      setPrescriptions(response.data.prescriptions || response.data || []);
+    } catch (error) {
+      console.error("❌ [USER PRESCRIPTIONS] Error loading prescriptions:", error);
+      setMessage("Error loading prescriptions: " + error.response?.data?.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading prescriptions...</p></div>;
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-4xl mx-auto">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+        >
+          ← Back
+        </button>
+
+        <h1 className="text-3xl font-bold text-dark mb-2">💊 My Prescriptions</h1>
+        <p className="text-gray-600 mb-6">View all your current and past prescriptions</p>
+
+        {message && (
+          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+            {message}
+          </div>
+        )}
+
+        {prescriptions.length === 0 ? (
+          <div className="bg-white p-8 rounded-lg shadow text-center">
+            <div className="text-5xl mb-4">💊</div>
+            <p className="text-gray-600 mb-4">No prescriptions yet</p>
+            <p className="text-sm text-gray-500">Your prescriptions from doctors will appear here</p>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {prescriptions.map((prescription) => (
+              <div key={prescription.id} className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-secondary">
+                <div className="grid md:grid-cols-2 gap-6 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Doctor</p>
+                    <p className="font-bold text-dark text-lg">{prescription.doctor_name || "N/A"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Date Prescribed</p>
+                    <p className="font-bold text-dark text-lg">
+                      {new Date(prescription.prescribed_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
+                  <div className="bg-background p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">💊 Medication</p>
+                    <p className="font-semibold text-dark">{prescription.medication_name || "N/A"}</p>
+                  </div>
+                  <div className="bg-background p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">📏 Dosage</p>
+                    <p className="font-semibold text-dark">{prescription.dosage || "N/A"}</p>
+                  </div>
+                  <div className="bg-background p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 mb-1">⏱️ Duration</p>
+                    <p className="font-semibold text-dark">{prescription.duration || "N/A"}</p>
+                  </div>
+                </div>
+
+                {prescription.instructions && (
+                  <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                    <p className="text-sm text-gray-600 mb-2">📝 Instructions</p>
+                    <p className="text-gray-700">{prescription.instructions}</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between">
+                  <span className={`px-4 py-2 rounded-full text-sm font-bold ${
+                    prescription.status === "active" ? "bg-green-100 text-green-700" :
+                    prescription.status === "expired" ? "bg-red-100 text-red-700" :
+                    "bg-yellow-100 text-yellow-700"
+                  }`}>
+                    {(prescription.status || "pending").toUpperCase()}
+                  </span>
+                  <button className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 text-sm font-semibold">
+                    📥 Download
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
