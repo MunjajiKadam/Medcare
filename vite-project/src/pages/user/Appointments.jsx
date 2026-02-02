@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { appointmentAPI } from "../../api/api";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function Appointments() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     fetchAppointments();
