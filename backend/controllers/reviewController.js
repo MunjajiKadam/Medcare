@@ -85,6 +85,60 @@ export const getReviewsByDoctor = async (req, res) => {
   }
 };
 
+// Update review
+export const updateReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, review_text } = req.body;
+    const userId = req.user.id;
+
+    // Validate rating
+    if (rating && (rating < 1 || rating > 5)) {
+      return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+    }
+
+    // Check if review exists and belongs to user
+    const review = await executeQuery(
+      'SELECT r.*, p.user_id FROM reviews r JOIN patients p ON r.patient_id = p.id WHERE r.id = ?',
+      [id]
+    );
+
+    if (review.length === 0) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    if (review[0].user_id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied: Can only update your own reviews' });
+    }
+
+    // Update review
+    const result = await executeQuery(
+      'UPDATE reviews SET rating = ?, review_text = ? WHERE id = ?',
+      [rating || review[0].rating, review_text || review[0].review_text, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(400).json({ message: 'Failed to update review' });
+    }
+
+    // Update doctor's average rating
+    const avgRating = await executeQuery(
+      'SELECT ROUND(AVG(rating), 2) as avg_rating, COUNT(*) as total FROM reviews WHERE doctor_id = ?',
+      [review[0].doctor_id]
+    );
+
+    await executeQuery(
+      'UPDATE doctors SET rating = ?, total_reviews = ? WHERE id = ?',
+      [avgRating[0].avg_rating || 0, avgRating[0].total || 0, review[0].doctor_id]
+    );
+
+    res.json({ message: 'Review updated successfully' });
+  } catch (error) {
+    console.error('Update review error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Delete review
 export const deleteReview = async (req, res) => {
   try {

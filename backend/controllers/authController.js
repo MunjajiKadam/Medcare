@@ -118,3 +118,47 @@ export const logout = (req, res) => {
     res.status(500).json({ message: 'Logout failed', error: error.message });
   }
 };
+
+// Change Password
+export const changePassword = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Validate inputs
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'New passwords do not match' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    // Get user
+    const user = await executeQuery('SELECT password FROM users WHERE id = ?', [id]);
+    if (user.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user[0].password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

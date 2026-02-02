@@ -221,7 +221,7 @@ export default function AllDoctors() {
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-3 pt-4">
                       <button 
-                        onClick={() => navigate(`/user/book/${doctor.id}`)}
+                        onClick={() => navigate(`/patient/book/${doctor.id}`)}
                         className="py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
                       >
                         📅 Book

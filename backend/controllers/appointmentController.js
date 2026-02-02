@@ -6,38 +6,89 @@ export const createAppointment = async (req, res) => {
     const { doctorId, appointmentDate, appointmentTime, reasonForVisit, symptoms } = req.body;
     const patientId = req.user.id;
 
+    console.log("\n========== 📅 APPOINTMENT CREATION START ==========");
+    console.log("📨 [APPOINTMENT] Request received with body:", req.body);
+    console.log("👤 [APPOINTMENT] User ID from token:", patientId);
+    console.log("🔍 [APPOINTMENT] Checking patient record for user_id:", patientId);
+
     // Get patient details
-    const patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
+    let patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
+    console.log("📊 [APPOINTMENT] Patient query result:", patient);
+    
     if (patient.length === 0) {
-      return res.status(400).json({ message: 'Patient record not found' });
+      console.warn("⚠️ [APPOINTMENT] Patient record not found, attempting to create one for user_id:", patientId);
+      try {
+        // Auto-create patient record if it doesn't exist
+        const insertResult = await executeQuery('INSERT INTO patients (user_id) VALUES (?)', [patientId]);
+        console.log("✅ [APPOINTMENT] Patient record created - Insert ID:", insertResult.insertId);
+        patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
+        console.log("✅ [APPOINTMENT] New patient record verified:", patient);
+      } catch (createErr) {
+        console.error("❌ [APPOINTMENT] Failed to create patient record:", createErr);
+        return res.status(400).json({ 
+          message: 'Patient record not found and could not be created. Please contact support.' 
+        });
+      }
     }
+    
+    const patientRecordId = patient[0].id;
+    console.log("✅ [APPOINTMENT] Patient record confirmed - ID:", patientRecordId);
+    console.log("🏥 [APPOINTMENT] Doctor ID:", doctorId);
+    console.log("📅 [APPOINTMENT] Appointment Date:", appointmentDate);
+    console.log("🕐 [APPOINTMENT] Appointment Time:", appointmentTime);
+    console.log("💬 [APPOINTMENT] Reason:", reasonForVisit);
+    console.log("🏥 [APPOINTMENT] Symptoms:", symptoms);
 
     // Check doctor availability
     const doctor = await executeQuery('SELECT id FROM doctors WHERE id = ?', [doctorId]);
+    console.log("🔎 [APPOINTMENT] Doctor check result:", doctor);
     if (doctor.length === 0) {
+      console.error("❌ [APPOINTMENT] Doctor not found - ID:", doctorId);
       return res.status(400).json({ message: 'Doctor not found' });
     }
+    console.log("✅ [APPOINTMENT] Doctor verified");
 
     // Check for duplicate appointments
+    console.log("🔍 [APPOINTMENT] Checking for duplicate appointments...");
     const existing = await executeQuery(
       'SELECT id FROM appointments WHERE patient_id = ? AND doctor_id = ? AND appointment_date = ? AND appointment_time = ? AND status != ?',
-      [patient[0].id, doctorId, appointmentDate, appointmentTime, 'cancelled']
+      [patientRecordId, doctorId, appointmentDate, appointmentTime, 'cancelled']
     );
+    console.log("📊 [APPOINTMENT] Duplicate check result:", existing);
     if (existing.length > 0) {
+      console.warn("⚠️ [APPOINTMENT] Duplicate appointment found");
       return res.status(400).json({ message: 'Appointment already exists for this time' });
     }
+    console.log("✅ [APPOINTMENT] No duplicates found");
 
     // Create appointment
+    console.log("💾 [APPOINTMENT] Inserting new appointment...");
     const result = await executeQuery(
       'INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason_for_visit, symptoms, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [patient[0].id, doctorId, appointmentDate, appointmentTime, reasonForVisit, symptoms, 'scheduled']
+      [patientRecordId, doctorId, appointmentDate, appointmentTime, reasonForVisit, symptoms, 'scheduled']
     );
+
+    console.log("✅ [APPOINTMENT] Appointment created successfully!");
+    console.log("📍 [APPOINTMENT] New Appointment ID:", result.insertId);
+    console.log("========== 📅 APPOINTMENT CREATION SUCCESS ==========\n");
 
     res.status(201).json({
       message: 'Appointment created successfully',
-      appointmentId: result.insertId
+      appointmentId: result.insertId,
+      appointment: {
+        id: result.insertId,
+        patientId: patientRecordId,
+        doctorId,
+        appointmentDate,
+        appointmentTime,
+        reason: reasonForVisit,
+        status: 'scheduled'
+      }
     });
   } catch (error) {
+    console.error("❌ [APPOINTMENT] ERROR - Exception during appointment creation:", error);
+    console.error("📝 [APPOINTMENT] Error message:", error.message);
+    console.error("========== 📅 APPOINTMENT CREATION FAILED ==========\n");
     console.error('Create appointment error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -101,12 +101,13 @@ export default function BrowseDoctors() {
             {filteredDoctors.map((doctor) => (
               <div
                 key={doctor.id}
-                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden"
+                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden cursor-pointer group"
+                onClick={() => navigate(`/patient/doctor/${doctor.id}`)}
               >
                 {/* Doctor Header */}
-                <div className="bg-secondary p-6 text-white text-center">
+                <div className="bg-gradient-to-r from-secondary to-blue-600 p-6 text-white text-center group-hover:from-blue-700 group-hover:to-blue-700 transition">
                   <div className="text-5xl mb-3">👨‍⚕️</div>
-                  <h2 className="text-lg font-bold">{doctor.name || "N/A"}</h2>
+                  <h2 className="text-lg font-bold">Dr. {doctor.name || "N/A"}</h2>
                   <p className="text-sm opacity-90">{doctor.specialization || "N/A"}</p>
                 </div>
 
@@ -134,23 +135,40 @@ export default function BrowseDoctors() {
                     <span className="text-lg font-bold text-primary">${doctor.consultation_fee || 0}</span>
                   </div>
 
+                  {/* License */}
+                  {doctor.license_number && (
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>License:</span>
+                      <span className="font-mono">{doctor.license_number}</span>
+                    </div>
+                  )}
+
                   {/* Availability */}
                   <div className="text-sm text-gray-600">
-                    <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded">
-                      ✓ Available Today
+                    <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-semibold">
+                      ✓ Available
                     </span>
                   </div>
 
                   {/* Actions */}
                   <div className="grid grid-cols-2 gap-3 pt-4">
                     <button 
-                      onClick={() => navigate(`/user/book/${doctor.id}`)}
-                      className="py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/patient/book/${doctor.id}`);
+                      }}
+                      className="py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
                     >
-                      Book Now
+                      📅 Book Now
                     </button>
-                    <button className="py-2 bg-background text-accent rounded-lg hover:bg-gray-100 transition font-semibold">
-                      View Profile
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/patient/doctor/${doctor.id}`);
+                      }}
+                      className="py-2 bg-background text-accent rounded-lg hover:bg-gray-100 transition font-semibold text-sm border-2 border-accent"
+                    >
+                      👁️ View
                     </button>
                   </div>
                 </div>

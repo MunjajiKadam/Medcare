@@ -40,7 +40,7 @@ export default function Login() {
         
         // Redirect based on role - slight delay for state update
         setTimeout(() => {
-          if (userType === "patient") navigate("/user/dashboard");
+          if (userType === "patient") navigate("/patient/dashboard");
           else if (userType === "doctor") navigate("/doctor/dashboard");
         }, 500);
       } catch (error) {

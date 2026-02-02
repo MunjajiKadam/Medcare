@@ -1,11 +1,28 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { doctorAPI, appointmentAPI, patientAPI } from "../api/api";
+import { useAuth } from "../Authcontext/AuthContext";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [counts, setCounts] = useState({ patients: 0, doctors: 0, appointments: 0 });
   const [loading, setLoading] = useState(true);
+
+  // Redirect logged-in users to their dashboard
+  useEffect(() => {
+    if (user) {
+      if (user.role === "patient") {
+        navigate("/patient/dashboard");
+      } else if (user.role === "doctor") {
+        navigate("/doctor/dashboard");
+      } else if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      }
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     let mounted = true;

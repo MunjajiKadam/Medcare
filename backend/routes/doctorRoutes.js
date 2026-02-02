@@ -11,11 +11,11 @@ import {
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllDoctors);
+// Public routes - more specific routes first
 router.get('/specialty/:specialization', getDoctorsBySpecialization);
-router.get('/:id', getDoctorById);
+router.get('/', getAllDoctors);
 router.get('/:id/reviews', getDoctorReviews);
+router.get('/:id', getDoctorById);
 
 // Protected routes
 router.get('/profile/:id', authMiddleware, getDoctorProfile);

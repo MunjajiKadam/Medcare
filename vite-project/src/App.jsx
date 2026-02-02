@@ -19,20 +19,21 @@ import Register from "./pages/auth/Register";
 import AdminLogin from "./pages/auth/AdminLogin";
 
 /* ===== User Pages ===== */
-import UserDashboard from "./pages/user/UserDashboard";
-import BookAppointment from "./pages/user/BookAppointment";
-import UserAppointments from "./pages/user/Appointments";
-import UserProfile from "./pages/user/Profile";
-import BrowseDoctors from "./pages/user/BrowseDoctors";
-import UserPrescriptions from "./pages/user/Prescriptions";
-import UserHealthRecords from "./pages/user/HealthRecords";
-import UserReviews from "./pages/user/Reviews";
-import UserSettings from "./pages/user/Settings";
+import UserDashboard from "./pages/patient/UserDashboard";
+import BookAppointment from "./pages/patient/BookAppointment";
+import UserAppointments from "./pages/patient/Appointments";
+import UserProfile from "./pages/patient/Profile";
+import BrowseDoctors from "./pages/patient/BrowseDoctors";
+import DoctorProfile from "./pages/patient/DoctorProfile";
+import UserPrescriptions from "./pages/patient/Prescriptions";
+import UserHealthRecords from "./pages/patient/HealthRecords";
+import UserReviews from "./pages/patient/Reviews";
+import UserSettings from "./pages/patient/Settings";
 
 /* ===== Doctor Pages ===== */
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import DoctorAppointments from "./pages/doctor/Appointments";
-import DoctorProfile from "./pages/doctor/Profile";
+import DoctorProfilePage from "./pages/doctor/Profile";
 
 /* ===== Admin Pages ===== */
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -65,9 +66,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* ================= USER/PATIENT ================= */}
+          {/* ================= PATIENT ================= */}
           <Route
-            path="/user/dashboard"
+            path="/patient/dashboard"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserDashboard />
@@ -75,7 +76,7 @@ function App() {
             }
           />
           <Route
-            path="/user/book/:doctorId"
+            path="/patient/book/:doctorId"
             element={
               <ProtectedRoute requiredRole="patient">
                 <BookAppointment />
@@ -83,7 +84,7 @@ function App() {
             }
           />
           <Route
-            path="/user/appointments"
+            path="/patient/appointments"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserAppointments />
@@ -91,7 +92,7 @@ function App() {
             }
           />
           <Route
-            path="/user/profile"
+            path="/patient/profile"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserProfile />
@@ -99,7 +100,7 @@ function App() {
             }
           />
           <Route
-            path="/user/browse-doctors"
+            path="/patient/browse-doctors"
             element={
               <ProtectedRoute requiredRole="patient">
                 <BrowseDoctors />
@@ -107,7 +108,15 @@ function App() {
             }
           />
           <Route
-            path="/user/prescriptions"
+            path="/patient/doctor/:doctorId"
+            element={
+              <ProtectedRoute requiredRole="patient">
+                <DoctorProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/prescriptions"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserPrescriptions />
@@ -115,7 +124,7 @@ function App() {
             }
           />
           <Route
-            path="/user/health-records"
+            path="/patient/health-records"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserHealthRecords />
@@ -123,7 +132,7 @@ function App() {
             }
           />
           <Route
-            path="/user/reviews"
+            path="/patient/reviews"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserReviews />
@@ -131,7 +140,7 @@ function App() {
             }
           />
           <Route
-            path="/user/settings"
+            path="/patient/settings"
             element={
               <ProtectedRoute requiredRole="patient">
                 <UserSettings />
@@ -160,7 +169,7 @@ function App() {
             path="/doctor/profile"
             element={
               <ProtectedRoute requiredRole="doctor">
-                <DoctorProfile />
+                <DoctorProfilePage />
               </ProtectedRoute>
             }
           />

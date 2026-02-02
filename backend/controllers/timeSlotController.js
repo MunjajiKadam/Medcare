@@ -30,9 +30,16 @@ export const createTimeSlot = async (req, res) => {
 export const getTimeSlots = async (req, res) => {
   try {
     const { doctorId } = req.params;
+    const { doctor_id } = req.query;
+    const id = doctorId || doctor_id;
+
+    if (!id) {
+      return res.status(400).json({ message: 'Doctor ID is required' });
+    }
+
     const slots = await executeQuery(
       'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY day_of_week, start_time',
-      [doctorId]
+      [id]
     );
 
     res.json({ slots });

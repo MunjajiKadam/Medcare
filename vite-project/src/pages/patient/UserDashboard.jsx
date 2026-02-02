@@ -1,19 +1,20 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { appointmentAPI, healthRecordAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [healthMetrics, setHealthMetrics] = useState([]);
   const quickActions = [
-    { icon: "📅", label: "Book Appointment", path: "/user/browse-doctors" },
-    { icon: "💊", label: "My Prescriptions", path: "/user/prescriptions" },
-    { icon: "📋", label: "Health Records", path: "/user/health-records" },
-    { icon: "⭐", label: "My Reviews", path: "/user/reviews" },
-    { icon: "👤", label: "Edit Profile", path: "/user/profile" },
-    { icon: "⚙️", label: "Settings", path: "/user/settings" },
+    { icon: "📅", label: "Book Appointment", path: "/patient/browse-doctors" },
+    { icon: "💊", label: "My Prescriptions", path: "/patient/prescriptions" },
+    { icon: "📋", label: "Health Records", path: "/patient/health-records" },
+    { icon: "⭐", label: "My Reviews", path: "/patient/reviews" },
+    { icon: "👤", label: "Edit Profile", path: "/patient/profile" },
+    { icon: "⚙️", label: "Settings", path: "/patient/settings" },
   ];
 
   useEffect(() => {
@@ -65,9 +66,12 @@ export default function Dashboard() {
         <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-dark">Upcoming Appointments</h2>
-            <Link to="/doctors" className="text-accent font-semibold hover:text-accent/80">
+            <button 
+              onClick={() => navigate('/patient/browse-doctors')}
+              className="text-accent font-semibold hover:text-accent/80 transition"
+            >
               Book New →
-            </Link>
+            </button>
           </div>
 
           {upcomingAppointments.length > 0 ? (
@@ -80,25 +84,39 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-600">{apt.specialization}</p>
                     </div>
                     <span className={`text-xs font-bold px-3 py-1 rounded ${
-                      apt.status === "confirmed" || apt.status === "Confirmed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                      apt.status === "confirmed" || apt.status === "scheduled" || apt.status === "Confirmed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
                     }`}>
                       {apt.status}
                     </span>
                   </div>
                   <p className="text-sm text-accent font-semibold">📅 {apt.appointment_date} {apt.appointment_time ? `at ${apt.appointment_time}` : ''}</p>
                   <div className="flex gap-2 mt-3">
-                    <button className="text-sm px-3 py-1 bg-accent text-white rounded hover:opacity-90">
-                      Reschedule
+                    <button 
+                      onClick={() => navigate(`/patient/book/${apt.doctor_id}`)}
+                      className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:opacity-90 transition"
+                    >
+                      📅 Book Another
                     </button>
-                    <button className="text-sm px-3 py-1 border border-accent text-accent rounded hover:bg-background">
-                      Cancel
+                    <button 
+                      onClick={() => navigate('/patient/appointments')}
+                      className="text-sm px-3 py-1 border border-accent text-accent rounded hover:bg-background transition"
+                    >
+                      View All
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-8">No upcoming appointments</p>
+            <div className="text-center py-8">
+              <p className="text-gray-600 mb-4">No upcoming appointments</p>
+              <button
+                onClick={() => navigate('/patient/browse-doctors')}
+                className="px-6 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold"
+              >
+                📅 Book an Appointment
+              </button>
+            </div>
           )}
         </div>
 

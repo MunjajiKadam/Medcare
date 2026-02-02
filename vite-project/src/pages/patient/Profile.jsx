@@ -11,6 +11,11 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [personalData, setPersonalData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
   const [formData, setFormData] = useState({
     blood_type: "",
     date_of_birth: "",
@@ -25,6 +30,7 @@ export default function Profile() {
     record_value: "",
   });
   const [message, setMessage] = useState("");
+  const [saveLoading, setSaveLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -37,6 +43,11 @@ export default function Profile() {
       const profileRes = await patientAPI.getPatientProfile();
       console.log("✅ [USER PROFILE] Patient profile received from backend:", profileRes.data);
       setProfile(profileRes.data.patient);
+      setPersonalData({
+        name: profileRes.data.patient.name || "",
+        email: profileRes.data.patient.email || "",
+        phone: profileRes.data.patient.phone || "",
+      });
       setFormData({
         blood_type: profileRes.data.patient.blood_type || "",
         date_of_birth: profileRes.data.patient.date_of_birth || "",
@@ -61,18 +72,55 @@ export default function Profile() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handlePersonalChange = (e) => {
+    setPersonalData({ ...personalData, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (saveLoading) {
+      console.warn("⏳ [USER PROFILE] Save already in progress, please wait...");
+      return;
+    }
     try {
-      console.log("📤 [USER PROFILE] Updating patient profile with data:", formData);
+      setSaveLoading(true);
+      console.log("📤 [USER PROFILE] Updating patient profile with health data:", formData);
       await patientAPI.updatePatientProfile(formData);
-      console.log("✅ [USER PROFILE] Profile updated successfully");
-      setMessage("✓ Profile updated!");
+      console.log("✅ [USER PROFILE] Health profile updated successfully");
+      setMessage("✓ Health Profile updated!");
       setEditing(false);
+      await new Promise(resolve => setTimeout(resolve, 1500));
       fetchData();
     } catch (error) {
       console.error("❌ [USER PROFILE] Error updating profile:", error);
       setMessage("✗ Error: " + error.response?.data?.message);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handlePersonalSubmit = async (e) => {
+    e.preventDefault();
+    if (saveLoading) {
+      console.warn("⏳ [USER PROFILE] Save already in progress, please wait...");
+      return;
+    }
+    try {
+      setSaveLoading(true);
+      console.log("📤 [USER PROFILE] Updating personal info:", personalData);
+      await patientAPI.updatePersonalInfo(personalData);
+      console.log("✅ [USER PROFILE] Personal info updated successfully");
+      setMessage("✓ Personal Info updated!");
+      setEditing(false);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      fetchData();
+    } catch (error) {
+      console.error("❌ [USER PROFILE] Error updating personal info:", error);
+      setMessage("✗ Error: " + error.response?.data?.message);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -167,42 +215,107 @@ export default function Profile() {
         </div>
 
         {activeTab === "profile" && (
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-dark mb-2">🩸 Blood Type</label>
-                <input type="text" name="blood_type" value={formData.blood_type} onChange={handleChange} disabled={!editing} placeholder="O+" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-dark mb-2">Gender</label>
-                <select name="gender" value={formData.gender} onChange={handleChange} disabled={!editing} className="w-full px-4 py-2 border rounded disabled:bg-gray-100">
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-dark mb-2">📅 DOB</label>
-                <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} disabled={!editing} className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-dark mb-2">📞 Emergency Phone</label>
-                <input type="tel" name="emergency_phone" value={formData.emergency_phone} onChange={handleChange} disabled={!editing} placeholder="+1234567890" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+          <form onSubmit={editing ? handlePersonalSubmit : null} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+            <div className="border-b pb-6">
+              <h2 className="text-2xl font-bold text-dark mb-6">👤 Personal Information</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">👤 Full Name</label>
+                  <input 
+                    type="text" 
+                    name="name" 
+                    value={personalData.name} 
+                    onChange={handlePersonalChange} 
+                    disabled={!editing} 
+                    placeholder="Your name" 
+                    className="w-full px-4 py-2 border rounded disabled:bg-gray-100" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">📧 Email</label>
+                  <input 
+                    type="email" 
+                    name="email" 
+                    value={personalData.email} 
+                    onChange={handlePersonalChange} 
+                    disabled={!editing} 
+                    placeholder="your@email.com" 
+                    className="w-full px-4 py-2 border rounded disabled:bg-gray-100" 
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-dark mb-2">📞 Phone</label>
+                  <input 
+                    type="tel" 
+                    name="phone" 
+                    value={personalData.phone} 
+                    onChange={handlePersonalChange} 
+                    disabled={!editing} 
+                    placeholder="+1234567890" 
+                    className="w-full px-4 py-2 border rounded disabled:bg-gray-100" 
+                  />
+                </div>
               </div>
             </div>
+
             <div>
-              <label className="block text-sm font-semibold text-dark mb-2">👥 Emergency Contact</label>
-              <input type="text" name="emergency_contact" value={formData.emergency_contact} onChange={handleChange} disabled={!editing} placeholder="Contact name" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+              <h2 className="text-2xl font-bold text-dark mb-6">🏥 Health Information</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">🩸 Blood Type</label>
+                    <input type="text" name="blood_type" value={formData.blood_type} onChange={handleChange} disabled={!editing} placeholder="O+" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">Gender</label>
+                    <select name="gender" value={formData.gender} onChange={handleChange} disabled={!editing} className="w-full px-4 py-2 border rounded disabled:bg-gray-100">
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">📅 DOB</label>
+                    <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} disabled={!editing} className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">📞 Emergency Phone</label>
+                    <input type="tel" name="emergency_phone" value={formData.emergency_phone} onChange={handleChange} disabled={!editing} placeholder="+1234567890" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">👥 Emergency Contact</label>
+                  <input type="text" name="emergency_contact" value={formData.emergency_contact} onChange={handleChange} disabled={!editing} placeholder="Contact name" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">📋 Medical History</label>
+                  <textarea name="medical_history" value={formData.medical_history} onChange={handleChange} disabled={!editing} placeholder="Any past conditions..." rows="3" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">⚠️ Allergies</label>
+                  <textarea name="allergies" value={formData.allergies} onChange={handleChange} disabled={!editing} placeholder="Any allergies..." rows="3" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
+                </div>
+
+                {editing && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <button 
+                      type="submit" 
+                      disabled={saveLoading}
+                      className="py-3 bg-primary text-dark font-bold rounded hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      {saveLoading ? "💾 Saving..." : "💾 Save Health Info"}
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={handlePersonalSubmit}
+                      disabled={saveLoading}
+                      className="py-3 bg-accent text-white font-bold rounded hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition">
+                      {saveLoading ? "💾 Saving..." : "💾 Save Personal Info"}
+                    </button>
+                  </div>
+                )}
+              </form>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-dark mb-2">📋 Medical History</label>
-              <textarea name="medical_history" value={formData.medical_history} onChange={handleChange} disabled={!editing} placeholder="Any past conditions..." rows="3" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-dark mb-2">⚠️ Allergies</label>
-              <textarea name="allergies" value={formData.allergies} onChange={handleChange} disabled={!editing} placeholder="Any allergies..." rows="3" className="w-full px-4 py-2 border rounded disabled:bg-gray-100" />
-            </div>
-            {editing && <button type="submit" className="w-full py-3 bg-primary text-dark font-bold rounded hover:opacity-90">💾 Save Changes</button>}
           </form>
         )}
 

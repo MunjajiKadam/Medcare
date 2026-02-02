@@ -60,6 +60,7 @@ export const patientAPI = {
   getPatientById: (id) => axios.get(`/patients/${id}`),
   getPatientProfile: () => axios.get('/patients/profile'),
   updatePatientProfile: (data) => axios.put('/patients/profile', data),
+  updatePersonalInfo: (data) => axios.put('/patients/personal-info', data),
   deletePatient: (id) => axios.delete(`/patients/${id}`),
 
   // Admin - Update patient
@@ -107,6 +108,7 @@ export const reviewAPI = {
   createReview: (data) => axios.post('/reviews', data),
   getReviews: () => axios.get('/reviews'),
   getReviewsByDoctor: (doctorId) => axios.get(`/reviews/doctor/${doctorId}`),
+  updateReview: (id, data) => axios.put(`/reviews/${id}`, data),
   deleteReview: (id) => axios.delete(`/reviews/${id}`),
 
   // Admin - Get all reviews
@@ -119,7 +121,7 @@ export const reviewAPI = {
 // Time Slot API calls
 export const timeSlotAPI = {
   createTimeSlot: (data) => axios.post('/time-slots', data),
-  getTimeSlots: (doctorId) => axios.get(`/time-slots/doctor/${doctorId}`),
+  getTimeSlots: (params) => axios.get('/time-slots', { params }),
   getTimeSlotById: (id) => axios.get(`/time-slots/${id}`),
   updateTimeSlot: (id, data) => axios.put(`/time-slots/${id}`, data),
   deleteTimeSlot: (id) => axios.delete(`/time-slots/${id}`),

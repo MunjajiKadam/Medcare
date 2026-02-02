@@ -57,7 +57,7 @@ export default function Register() {
         
         // Redirect based on role
         setTimeout(() => {
-          if (formData.userType === "patient") navigate("/user/dashboard");
+          if (formData.userType === "patient") navigate("/patient/dashboard");
           else if (formData.userType === "doctor") navigate("/doctor/dashboard");
         }, 500);
       } catch (error) {

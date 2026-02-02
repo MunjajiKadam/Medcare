@@ -66,18 +66,62 @@ export const updatePatientProfile = async (req, res) => {
     const { id } = req.user;
     const { blood_type, date_of_birth, gender, medical_history, allergies, emergency_contact, emergency_phone } = req.body;
 
+    console.log("📤 [PATIENT PROFILE] Updating health info for user_id:", id);
+    console.log("📊 [PATIENT PROFILE] Health data:", { blood_type, date_of_birth, gender, medical_history, allergies, emergency_contact, emergency_phone });
+
     const result = await executeQuery(
       'UPDATE patients SET blood_type = ?, date_of_birth = ?, gender = ?, medical_history = ?, allergies = ?, emergency_contact = ?, emergency_phone = ? WHERE user_id = ?',
       [blood_type, date_of_birth, gender, medical_history, allergies, emergency_contact, emergency_phone, id]
     );
 
     if (result.affectedRows === 0) {
+      console.error("❌ [PATIENT PROFILE] Patient profile not found for user_id:", id);
       return res.status(404).json({ message: 'Patient profile not found' });
     }
 
+    console.log("✅ [PATIENT PROFILE] Health info updated successfully for user_id:", id);
     res.json({ message: 'Patient profile updated successfully' });
   } catch (error) {
-    console.error('Update patient profile error:', error);
+    console.error('❌ [PATIENT PROFILE] Update patient profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Update personal info (name, email, phone)
+export const updatePersonalInfo = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { name, email, phone } = req.body;
+
+    console.log("📤 [PERSONAL INFO] Updating personal info for user_id:", id);
+    console.log("📊 [PERSONAL INFO] Personal data:", { name, email, phone });
+
+    // Check if email already exists for another user
+    if (email) {
+      const existingUser = await executeQuery(
+        'SELECT id FROM users WHERE email = ? AND id != ?',
+        [email, id]
+      );
+      if (existingUser.length > 0) {
+        console.warn("⚠️ [PERSONAL INFO] Email already in use:", email);
+        return res.status(400).json({ message: 'Email already in use by another account' });
+      }
+    }
+
+    const result = await executeQuery(
+      'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?',
+      [name, email, phone, id]
+    );
+
+    if (result.affectedRows === 0) {
+      console.error("❌ [PERSONAL INFO] User not found for user_id:", id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log("✅ [PERSONAL INFO] Personal info updated successfully for user_id:", id);
+    res.json({ message: 'Personal information updated successfully' });
+  } catch (error) {
+    console.error('❌ [PERSONAL INFO] Update personal info error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
