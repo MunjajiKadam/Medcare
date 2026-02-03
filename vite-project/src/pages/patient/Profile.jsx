@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Authcontext/AuthContext";
 import { patientAPI, healthRecordAPI } from "../../api/api";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -31,6 +33,8 @@ export default function Profile() {
   });
   const [message, setMessage] = useState("");
   const [saveLoading, setSaveLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -157,6 +161,45 @@ export default function Profile() {
     }
   };
 
+  const handleViewDetails = (record) => {
+    console.log("👁️ [USER PROFILE] Viewing details for record:", record);
+    setSelectedRecord(record);
+    setShowModal(true);
+  };
+
+  const handleDownload = (record) => {
+    console.log("📥 [USER PROFILE] Downloading record:", record);
+    try {
+      const content = `
+HEALTH RECORD DETAILS
+=====================
+
+Record Type: ${record.record_type}
+Value: ${record.record_value}
+Date: ${new Date(record.record_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+${record.notes ? `Notes: ${record.notes}` : ''}
+
+---
+Downloaded on: ${new Date().toLocaleString()}
+      `.trim();
+
+      const element = document.createElement('a');
+      const file = new Blob([content], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = `health-record-${record.record_type.replace(/\s+/g, '-')}-${new Date(record.record_date).toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      console.log("✅ [USER PROFILE] Record downloaded successfully");
+      setMessage("✓ Record downloaded!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ [USER PROFILE] Error downloading record:", error);
+      setMessage("Error downloading record");
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading...</p></div>;
 
   return (
@@ -260,7 +303,7 @@ export default function Profile() {
 
             <div>
               <h2 className="text-2xl font-bold text-dark mb-6">🏥 Health Information</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-dark mb-2">🩸 Blood Type</label>
@@ -314,7 +357,7 @@ export default function Profile() {
                     </button>
                   </div>
                 )}
-              </form>
+              </div>
             </div>
           </form>
         )}
@@ -338,17 +381,100 @@ export default function Profile() {
               ) : (
                 <div className="space-y-4">
                   {healthRecords.map((record) => (
-                    <div key={record.id} className="flex justify-between items-center p-4 border rounded hover:bg-gray-50">
-                      <div>
+                    <div key={record.id} className="flex justify-between items-center p-4 border rounded hover:bg-gray-50 transition">
+                      <div className="flex-1">
                         <p className="font-semibold">{record.record_type}</p>
                         <p className="text-lg text-primary font-bold">{record.record_value}</p>
                         <p className="text-sm text-gray-500">{new Date(record.record_date).toLocaleDateString()}</p>
                       </div>
-                      <button onClick={() => deleteRecord(record.id)} className="px-4 py-2 bg-red-500 text-white rounded hover:opacity-90">🗑️ Delete</button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleViewDetails(record)} 
+                          className="px-3 py-2 bg-accent text-white rounded text-sm hover:opacity-90 transition"
+                        >
+                          👁️ Details
+                        </button>
+                        <button 
+                          onClick={() => handleDownload(record)} 
+                          className="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:opacity-90 transition"
+                        >
+                          📥 Download
+                        </button>
+                        <button 
+                          onClick={() => deleteRecord(record.id)} 
+                          className="px-3 py-2 bg-red-500 text-white rounded text-sm hover:opacity-90 transition"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal for viewing details */}
+        {showModal && selectedRecord && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-8">
+              <div className="flex justify-between items-start mb-4">
+                <h2 className="text-2xl font-bold text-dark">📋 Record Details</h2>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-500 hover:text-dark text-2xl font-bold"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Record Type</label>
+                  <p className="text-lg font-bold text-dark">{selectedRecord.record_type}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Value</label>
+                  <p className="text-2xl font-bold text-secondary">{selectedRecord.record_value}</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Date</label>
+                  <p className="text-base text-dark">{new Date(selectedRecord.record_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+
+                {selectedRecord.notes && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 mb-1">Notes</label>
+                    <p className="text-base text-dark bg-gray-50 p-3 rounded">{selectedRecord.notes}</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-600 mb-1">Record ID</label>
+                  <p className="text-sm text-gray-500 font-mono">{selectedRecord.id}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                <button 
+                  onClick={() => {
+                    handleDownload(selectedRecord);
+                    setShowModal(false);
+                  }}
+                  className="flex-1 py-2 bg-accent text-white rounded-lg hover:opacity-90 font-semibold transition"
+                >
+                  📥 Download
+                </button>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 py-2 bg-gray-200 text-dark rounded-lg hover:bg-gray-300 font-semibold transition"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { healthRecordAPI } from "../../api/api";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function HealthRecords() {
   const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchHealthRecords();
@@ -27,10 +31,53 @@ export default function HealthRecords() {
     }
   };
 
+  const handleViewDetails = (record) => {
+    console.log("👁️ [USER HEALTH RECORDS] Viewing details for record:", record);
+    setSelectedRecord(record);
+    setShowModal(true);
+  };
+
+  const handleDownload = (record) => {
+    console.log("📥 [USER HEALTH RECORDS] Downloading record:", record);
+    try {
+      // Create a text content for the record
+      const content = `
+HEALTH RECORD DETAILS
+=====================
+
+Record Type: ${record.record_type}
+Value: ${record.record_value}
+Date: ${new Date(record.record_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+${record.notes ? `Notes: ${record.notes}` : ''}
+
+---
+Downloaded on: ${new Date().toLocaleString()}
+      `.trim();
+
+      // Create a blob and download
+      const element = document.createElement('a');
+      const file = new Blob([content], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = `health-record-${record.record_type.replace(/\s+/g, '-')}-${new Date(record.record_date).toISOString().split('T')[0]}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      console.log("✅ [USER HEALTH RECORDS] Record downloaded successfully");
+      setMessage("✓ Record downloaded!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ [USER HEALTH RECORDS] Error downloading record:", error);
+      setMessage("Error downloading record");
+    }
+  };
+
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading health records...</p></div>;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background p-6">
       <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
@@ -83,10 +130,16 @@ export default function HealthRecords() {
                 )}
 
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 text-sm font-semibold">
+                  <button 
+                    onClick={() => handleViewDetails(record)}
+                    className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 text-sm font-semibold transition"
+                  >
                     👁️ View Details
                   </button>
-                  <button className="px-4 py-2 bg-background border-2 border-accent text-accent rounded-lg hover:bg-gray-100 text-sm font-semibold">
+                  <button 
+                    onClick={() => handleDownload(record)}
+                    className="px-4 py-2 bg-background border-2 border-accent text-accent rounded-lg hover:bg-gray-100 text-sm font-semibold transition"
+                  >
                     📥 Download
                   </button>
                 </div>
@@ -96,5 +149,71 @@ export default function HealthRecords() {
         )}
       </div>
     </div>
+
+    {/* Modal for viewing details */}
+    {showModal && selectedRecord && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-8">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-2xl font-bold text-dark">📋 Record Details</h2>
+            <button 
+              onClick={() => setShowModal(false)}
+              className="text-gray-500 hover:text-dark text-2xl font-bold"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Record Type</label>
+              <p className="text-lg font-bold text-dark">{selectedRecord.record_type}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Value</label>
+              <p className="text-2xl font-bold text-secondary">{selectedRecord.record_value}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Date</label>
+              <p className="text-base text-dark">{new Date(selectedRecord.record_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            </div>
+
+            {selectedRecord.notes && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-1">Notes</label>
+                <p className="text-base text-dark bg-gray-50 p-3 rounded">{selectedRecord.notes}</p>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-600 mb-1">Record ID</label>
+              <p className="text-sm text-gray-500 font-mono">{selectedRecord.id}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-8">
+            <button 
+              onClick={() => {
+                handleDownload(selectedRecord);
+                setShowModal(false);
+              }}
+              className="flex-1 py-2 bg-accent text-white rounded-lg hover:opacity-90 font-semibold transition"
+            >
+              📥 Download
+            </button>
+            <button 
+              onClick={() => setShowModal(false)}
+              className="flex-1 py-2 bg-gray-200 text-dark rounded-lg hover:bg-gray-300 font-semibold transition"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    <Footer />
+    </>
   );
 }

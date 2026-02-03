@@ -108,3 +108,24 @@ export const getDoctorReviews = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// Get Current Doctor Profile (Protected)
+export const getCurrentDoctorProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // Get user ID from the auth middleware
+
+    const doctor = await executeQuery(
+      'SELECT d.*, u.name, u.email, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.user_id = ?',
+      [userId]
+    );
+
+    if (doctor.length === 0) {
+      return res.status(404).json({ message: 'Doctor profile not found' });
+    }
+
+    res.json(doctor[0]);
+  } catch (error) {
+    console.error('Get current doctor profile error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

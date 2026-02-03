@@ -2,12 +2,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { appointmentAPI, healthRecordAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [healthMetrics, setHealthMetrics] = useState([]);
+  const [message, setMessage] = useState("");
+  const [cancellingId, setCancellingId] = useState(null);
   const quickActions = [
     { icon: "📅", label: "Book Appointment", path: "/patient/browse-doctors" },
     { icon: "💊", label: "My Prescriptions", path: "/patient/prescriptions" },
@@ -39,8 +43,39 @@ export default function Dashboard() {
     return () => (mounted = false);
   }, [user]);
 
+  const cancelAppointment = async (id) => {
+    if (confirm("Are you sure you want to cancel this appointment?")) {
+      try {
+        setCancellingId(id);
+        console.log(`📤 [USER DASHBOARD] Cancelling appointment ID: ${id}`);
+        await appointmentAPI.cancelAppointment(id);
+        console.log("✅ [USER DASHBOARD] Appointment cancelled successfully");
+        setMessage("✓ Appointment cancelled!");
+        
+        // Remove from list and refresh
+        setUpcomingAppointments(upcomingAppointments.filter(apt => apt.id !== id));
+        setTimeout(() => setMessage(""), 3000);
+      } catch (error) {
+        console.error("❌ [USER DASHBOARD] Error cancelling appointment:", error);
+        setMessage("✗ Error: " + error.response?.data?.message);
+        setTimeout(() => setMessage(""), 3000);
+      } finally {
+        setCancellingId(null);
+      }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background p-6">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background p-6">
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg max-w-4xl mx-auto ${
+            message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+          }`}>
+            {message}
+          </div>
+        )}
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-dark mb-2">Welcome Back, {user?.name || 'User'}! 👋</h1>
@@ -98,6 +133,13 @@ export default function Dashboard() {
                       📅 Book Another
                     </button>
                     <button 
+                      onClick={() => cancelAppointment(apt.id)}
+                      disabled={cancellingId === apt.id}
+                      className="text-sm px-3 py-1 bg-red-600 text-white rounded hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {cancellingId === apt.id ? "Cancelling..." : "❌ Cancel"}
+                    </button>
+                    <button 
                       onClick={() => navigate('/patient/appointments')}
                       className="text-sm px-3 py-1 border border-accent text-accent rounded hover:bg-background transition"
                     >
@@ -141,5 +183,7 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

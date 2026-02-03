@@ -155,17 +155,64 @@ export const getAppointmentById = async (req, res) => {
 export const updateAppointment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { appointmentDate, appointmentTime, reasonForVisit, symptoms, notes } = req.body;
+    const { appointmentDate, appointmentTime, reasonForVisit, symptoms, notes, status } = req.body;
 
-    const result = await executeQuery(
-      'UPDATE appointments SET appointment_date = ?, appointment_time = ?, reason_for_visit = ?, symptoms = ?, notes = ? WHERE id = ?',
-      [appointmentDate, appointmentTime, reasonForVisit, symptoms, notes, id]
-    );
+    console.log(`\n📝 [APPOINTMENT UPDATE] Received update request for appointment ID: ${id}`);
+    console.log(`📊 [APPOINTMENT UPDATE] Request body:`, req.body);
+
+    // Build dynamic update query based on what fields are provided
+    let updateFields = [];
+    let updateValues = [];
+
+    if (appointmentDate) {
+      updateFields.push('appointment_date = ?');
+      updateValues.push(appointmentDate);
+    }
+    if (appointmentTime) {
+      updateFields.push('appointment_time = ?');
+      updateValues.push(appointmentTime);
+    }
+    if (reasonForVisit) {
+      updateFields.push('reason_for_visit = ?');
+      updateValues.push(reasonForVisit);
+    }
+    if (symptoms) {
+      updateFields.push('symptoms = ?');
+      updateValues.push(symptoms);
+    }
+    if (notes) {
+      updateFields.push('notes = ?');
+      updateValues.push(notes);
+    }
+    if (status) {
+      updateFields.push('status = ?');
+      updateValues.push(status);
+      console.log(`✅ [APPOINTMENT UPDATE] Status field detected: ${status}`);
+    }
+
+    // If no fields to update, return error
+    if (updateFields.length === 0) {
+      console.log(`❌ [APPOINTMENT UPDATE] No fields to update`);
+      return res.status(400).json({ message: 'No fields to update' });
+    }
+
+    // Add appointment ID to the values array
+    updateValues.push(id);
+
+    const query = `UPDATE appointments SET ${updateFields.join(', ')} WHERE id = ?`;
+    console.log(`🔄 [APPOINTMENT UPDATE] Executing query:`, query);
+    console.log(`📋 [APPOINTMENT UPDATE] With values:`, updateValues);
+
+    const result = await executeQuery(query, updateValues);
+
+    console.log(`📊 [APPOINTMENT UPDATE] Query result:`, result);
 
     if (result.affectedRows === 0) {
+      console.warn(`⚠️ [APPOINTMENT UPDATE] No rows affected - Appointment not found`);
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    console.log(`✅ [APPOINTMENT UPDATE] Appointment updated successfully`);
     res.json({ message: 'Appointment updated successfully' });
   } catch (error) {
     console.error('Update appointment error:', error);

@@ -47,20 +47,28 @@ export default function Appointments() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading appointments...</p></div>;
+  if (loading) return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading appointments...</p></div>
+      <Footer />
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-        >
-          ← Back
-        </button>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          >
+            ← Back
+          </button>
 
-        <h1 className="text-3xl font-bold text-dark mb-6">📅 My Appointments</h1>
+          <h1 className="text-3xl font-bold text-dark mb-6">📅 My Appointments</h1>
         
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
@@ -120,13 +128,18 @@ export default function Appointments() {
 
                   <div className="pt-4 border-t">
                     {apt.status === "scheduled" && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-3">ℹ️ To cancel or reschedule, please contact the clinic directly</p>
+                      <div className="space-y-3">
                         <button
                           onClick={() => navigate(`/patient/book/${apt.doctor_id}`)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
                         >
                           📅 Book Another with {apt.doctor_name}
+                        </button>
+                        <button
+                          onClick={() => cancelAppointment(apt.id)}
+                          className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
+                        >
+                          ❌ Cancel Appointment
                         </button>
                       </div>
                     )}
@@ -166,5 +179,7 @@ export default function Appointments() {
         )}
       </div>
     </div>
+      <Footer />
+    </>
   );
 }

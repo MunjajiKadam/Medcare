@@ -12,6 +12,9 @@ import healthRecordRoutes from './routes/healthRecordRoutes.js';
 import prescriptionRoutes from './routes/prescriptionRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import timeSlotRoutes from './routes/timeSlotRoutes.js';
+import consultationNotesRoutes from './routes/consultationNotesRoutes.js';
+import diagnosisRoutes from './routes/diagnosisRoutes.js';
+import availabilityRoutes from './routes/availabilityRoutes.js';
 
 dotenv.config();
 
@@ -53,6 +56,9 @@ app.use('/api/health-records', healthRecordRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/time-slots', timeSlotRoutes);
+app.use('/api/consultation-notes', consultationNotesRoutes);
+app.use('/api/diagnoses', diagnosisRoutes);
+app.use('/api/availability', availabilityRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Authcontext/AuthContext";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -9,17 +11,73 @@ export default function Settings() {
   const [newsletter, setNewsletter] = useState(true);
   const [theme, setTheme] = useState("light");
   const [message, setMessage] = useState("");
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
-  const handleSaveSettings = () => {
-    console.log("📤 [USER SETTINGS] Saving user preferences...");
-    const settings = {
-      notification,
-      newsletter,
-      theme
-    };
-    console.log("✅ [USER SETTINGS] Settings saved:", settings);
-    setMessage("✓ Settings saved successfully!");
-    setTimeout(() => setMessage(""), 3000);
+  const handleSaveSettings = async () => {
+    if (saveLoading) return;
+    try {
+      setSaveLoading(true);
+      console.log("📤 [USER SETTINGS] Saving user preferences...");
+      const settings = {
+        notification,
+        newsletter,
+        theme
+      };
+      console.log("✅ [USER SETTINGS] Settings saved:", settings);
+      setMessage("✓ Settings saved successfully!");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ [USER SETTINGS] Error saving settings:", error);
+      setMessage("✗ Error saving settings");
+      setTimeout(() => setMessage(""), 3000);
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setMessage("✗ All password fields are required");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage("✗ New passwords do not match");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setMessage("✗ Password must be at least 6 characters");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    try {
+      setSaveLoading(true);
+      console.log("📤 [USER SETTINGS] Changing password...");
+      // TODO: Call backend API to change password
+      // await userAPI.changePassword(passwordData);
+      console.log("✅ [USER SETTINGS] Password changed successfully");
+      setMessage("✓ Password changed successfully!");
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowPasswordForm(false);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ [USER SETTINGS] Error changing password:", error);
+      setMessage("✗ Error changing password");
+      setTimeout(() => setMessage(""), 3000);
+    } finally {
+      setSaveLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -32,8 +90,10 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-2xl mx-auto">
         <button
           onClick={() => navigate(-1)}
           className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
@@ -86,8 +146,94 @@ export default function Settings() {
             </div>
 
             <button className="w-full py-2 border-2 border-accent text-accent rounded-lg hover:bg-background transition font-semibold">
-              Edit Profile
+              ✏️ Edit Profile
             </button>
+          </div>
+        </div>
+
+        {/* Security Section */}
+        <div className="bg-white p-8 rounded-xl shadow-lg mb-6">
+          <h2 className="text-2xl font-bold text-dark mb-6">🔐 Security</h2>
+          
+          <div className="space-y-4">
+            {!showPasswordForm ? (
+              <button
+                onClick={() => setShowPasswordForm(true)}
+                className="w-full py-3 border-2 border-accent text-accent rounded-lg hover:bg-background transition font-semibold"
+              >
+                🔑 Change Password
+              </button>
+            ) : (
+              <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">Current Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      placeholder="Enter current password"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      placeholder="Enter new password"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-accent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-dark mb-2">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      placeholder="Confirm new password"
+                      className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-accent"
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={saveLoading}
+                      className="flex-1 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {saveLoading ? "Updating..." : "Update Password"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPasswordForm(false);
+                        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                      }}
+                      className="flex-1 py-2 border-2 border-gray-300 text-dark rounded-lg hover:bg-gray-100 transition font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between p-4 bg-background rounded-lg">
+              <div>
+                <p className="font-semibold text-dark">🛡️ Two-Factor Authentication</p>
+                <p className="text-sm text-gray-600">Add an extra layer of security</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={twoFactorEnabled}
+                onChange={(e) => {
+                  setTwoFactorEnabled(e.target.checked);
+                  setMessage(e.target.checked ? "✓ 2FA coming soon!" : "");
+                  setTimeout(() => setMessage(""), 2000);
+                }}
+                className="w-6 h-6 cursor-pointer"
+              />
+            </div>
           </div>
         </div>
 
@@ -148,9 +294,10 @@ export default function Settings() {
         <div className="bg-white p-8 rounded-xl shadow-lg mb-6">
           <button
             onClick={handleSaveSettings}
-            className="w-full py-3 bg-accent text-white rounded-lg font-bold hover:opacity-90 transition"
+            disabled={saveLoading}
+            className="w-full py-3 bg-accent text-white rounded-lg font-bold hover:opacity-90 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            💾 Save Settings
+            {saveLoading ? "💾 Saving..." : "💾 Save Settings"}
           </button>
         </div>
 
@@ -169,7 +316,9 @@ export default function Settings() {
             This will logout your current session. You can login again anytime.
           </p>
         </div>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

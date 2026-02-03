@@ -6,7 +6,8 @@ import {
   getDoctorProfile,
   updateDoctorProfile,
   getDoctorsBySpecialization,
-  getDoctorReviews
+  getDoctorReviews,
+  getCurrentDoctorProfile
 } from '../controllers/doctorController.js';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.get('/:id/reviews', getDoctorReviews);
 router.get('/:id', getDoctorById);
 
 // Protected routes
+router.get('/profile/me', authMiddleware, roleMiddleware(['doctor']), getCurrentDoctorProfile);
 router.get('/profile/:id', authMiddleware, getDoctorProfile);
 router.put('/profile/:id', authMiddleware, updateDoctorProfile);
 

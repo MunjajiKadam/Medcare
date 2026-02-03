@@ -15,6 +15,9 @@ export const doctorAPI = {
   // Get doctor reviews
   getDoctorReviews: (doctorId) => axios.get(`/doctors/${doctorId}/reviews`),
 
+  // Get current doctor profile (protected)
+  getProfile: () => axios.get('/doctors/profile/me'),
+
   // Get doctor profile (protected)
   getDoctorProfile: (doctorId) => axios.get(`/doctors/profile/${doctorId}`),
 
@@ -134,6 +137,33 @@ export const timeSlotAPI = {
 
   // Admin - Delete time slot
   deleteTimeSlotAdmin: (id) => axios.delete(`/time-slots/admin/${id}`),
+};
+
+// Consultation Notes API calls
+export const consultationNotesAPI = {
+  createConsultationNotes: (data) => axios.post('/consultation-notes', data),
+  getConsultationNotes: () => axios.get('/consultation-notes'),
+  getConsultationNotesByAppointment: (appointmentId) => axios.get(`/consultation-notes/appointment/${appointmentId}`),
+  updateConsultationNotes: (id, data) => axios.put(`/consultation-notes/${id}`, data),
+};
+
+// Diagnosis API calls
+export const diagnosisAPI = {
+  createDiagnosis: (data) => axios.post('/diagnoses', data),
+  getDiagnoses: () => axios.get('/diagnoses'),
+  getDiagnosisByAppointment: (appointmentId) => axios.get(`/diagnoses/appointment/${appointmentId}`),
+  updateDiagnosis: (id, data) => axios.put(`/diagnoses/${id}`, data),
+  deleteDiagnosis: (id) => axios.delete(`/diagnoses/${id}`),
+};
+
+// Availability API calls
+export const availabilityAPI = {
+  getDoctorAvailability: (doctorId) => axios.get(`/availability/doctor/${doctorId}`),
+  updateAvailabilityStatus: (data) => axios.put('/availability/status', data),
+  getAvailabilityHistory: () => axios.get('/availability/history'),
+  upsertTimeSlot: (data) => axios.post('/availability/time-slot', data),
+  toggleTimeSlotAvailability: (slotId, data) => axios.put(`/availability/time-slot/${slotId}/toggle`, data),
+  deleteTimeSlot: (slotId) => axios.delete(`/availability/time-slot/${slotId}`),
 };
 
 export default axios;

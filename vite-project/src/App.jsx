@@ -34,6 +34,9 @@ import UserSettings from "./pages/patient/Settings";
 import DoctorDashboard from "./pages/doctor/DoctorDashboard";
 import DoctorAppointments from "./pages/doctor/Appointments";
 import DoctorProfilePage from "./pages/doctor/Profile";
+import DoctorPatients from "./pages/doctor/Patients";
+import DoctorPrescriptions from "./pages/doctor/Prescriptions";
+import DoctorReviews from "./pages/doctor/Reviews";
 
 /* ===== Admin Pages ===== */
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -170,6 +173,30 @@ function App() {
             element={
               <ProtectedRoute requiredRole="doctor">
                 <DoctorProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/patients"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorPatients />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/prescriptions"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorPrescriptions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/reviews"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorReviews />
               </ProtectedRoute>
             }
           />

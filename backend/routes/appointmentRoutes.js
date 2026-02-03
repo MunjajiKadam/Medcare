@@ -12,13 +12,13 @@ const router = express.Router();
 
 // Protected routes
 router.post('/', authMiddleware, createAppointment);
+router.get('/admin/all', authMiddleware, roleMiddleware(['admin']), getAppointments);
 router.get('/', authMiddleware, getAppointments);
 router.get('/:id', authMiddleware, getAppointmentById);
 router.put('/:id', authMiddleware, updateAppointment);
 router.delete('/:id', authMiddleware, cancelAppointment);
 
 // Admin-only routes
-router.get('/admin/all', authMiddleware, roleMiddleware(['admin']), getAppointments);
 router.put('/admin/:id', authMiddleware, roleMiddleware(['admin']), updateAppointment);
 router.delete('/admin/:id', authMiddleware, roleMiddleware(['admin']), cancelAppointment);
 

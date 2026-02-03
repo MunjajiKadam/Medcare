@@ -14,16 +14,16 @@ const router = express.Router();
 // Admin routes - GET all patients
 router.get('/', authMiddleware, roleMiddleware(['admin']), getAllPatients);
 
-// Protected routes - GET own profile
+// Protected routes - GET own profile (must be before /:id route)
 router.get('/profile', authMiddleware, getPatientProfile);
 
-// Protected routes - UPDATE own profile (health info)
+// Protected routes - UPDATE own profile (health info) (must be before /:id route)
 router.put('/profile', authMiddleware, updatePatientProfile);
 
-// Protected routes - UPDATE personal info (name, email, phone)
+// Protected routes - UPDATE personal info (name, email, phone) (must be before /:id route)
 router.put('/personal-info', authMiddleware, updatePersonalInfo);
 
-// Get patient by ID (admin or self)
+// Get patient by ID (admin or self) - this must be AFTER all specific routes
 router.get('/:id', authMiddleware, getPatientById);
 
 // Admin routes - UPDATE patient
