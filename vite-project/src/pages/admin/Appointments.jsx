@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { appointmentAPI } from "../../api/api";
+import { useAuth } from "../../Authcontext/AuthContext";
 
 export default function Appointments() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/admin/login");
+    }
+  };
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -17,7 +25,7 @@ export default function Appointments() {
     try {
       setLoading(true);
       console.log("📤 [ADMIN APPOINTMENTS] Fetching all appointments from API...");
-      const response = await appointmentAPI.getAppointments();
+      const response = await appointmentAPI.getAllAppointmentsAdmin();
       console.log("✅ [ADMIN APPOINTMENTS] Appointments received from backend:", response.data);
       setAppointments(response.data.appointments || []);
     } catch (error) {
@@ -37,12 +45,21 @@ export default function Appointments() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-        >
-          ← Back
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
 
         <h1 className="text-3xl font-bold text-dark mb-2">📅 All Appointments</h1>
         <p className="text-gray-600 mb-6">Manage all patient appointments</p>

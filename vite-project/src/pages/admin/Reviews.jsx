@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { reviewAPI } from "../../api/api";
+import { useAuth } from "../../Authcontext/AuthContext";
 
 export default function Reviews() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/admin/login");
+    }
+  };
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -17,7 +25,7 @@ export default function Reviews() {
     try {
       setLoading(true);
       console.log("📤 [ADMIN REVIEWS] Fetching reviews from API...");
-      const response = await reviewAPI.getReviews();
+      const response = await reviewAPI.getAllReviewsAdmin();
       console.log("✅ [ADMIN REVIEWS] Reviews received from backend:", response.data);
       setReviews(response.data.reviews || response.data || []);
     } catch (error) {
@@ -32,7 +40,7 @@ export default function Reviews() {
     if (confirm("Are you sure you want to delete this review?")) {
       try {
         console.log(`📤 [ADMIN REVIEWS] Deleting review ID: ${id}`);
-        await reviewAPI.deleteReview(id);
+        await reviewAPI.deleteReviewAdmin(id);
         console.log("✅ [ADMIN REVIEWS] Review deleted successfully");
         setMessage("✓ Review deleted!");
         fetchReviews();
@@ -52,12 +60,21 @@ export default function Reviews() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-        >
-          ← Back
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
 
         <h1 className="text-3xl font-bold text-dark mb-2">⭐ Doctor Reviews</h1>
         <p className="text-gray-600 mb-6">View and manage doctor reviews and ratings</p>

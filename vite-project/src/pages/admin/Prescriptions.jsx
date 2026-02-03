@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { prescriptionAPI } from "../../api/api";
+import { useAuth } from "../../Authcontext/AuthContext";
 
 export default function Prescriptions() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/admin/login");
+    }
+  };
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -17,7 +25,7 @@ export default function Prescriptions() {
     try {
       setLoading(true);
       console.log("📤 [ADMIN PRESCRIPTIONS] Fetching prescriptions from API...");
-      const response = await prescriptionAPI.getPrescriptions();
+      const response = await prescriptionAPI.getAllPrescriptionsAdmin();
       console.log("✅ [ADMIN PRESCRIPTIONS] Prescriptions received from backend:", response.data);
       setPrescriptions(response.data.prescriptions || response.data || []);
     } catch (error) {
@@ -32,7 +40,7 @@ export default function Prescriptions() {
     if (confirm("Are you sure you want to delete this prescription?")) {
       try {
         console.log(`📤 [ADMIN PRESCRIPTIONS] Deleting prescription ID: ${id}`);
-        await prescriptionAPI.deletePrescription(id);
+        await prescriptionAPI.deletePrescriptionAdmin(id);
         console.log("✅ [ADMIN PRESCRIPTIONS] Prescription deleted successfully");
         setMessage("✓ Prescription deleted!");
         fetchPrescriptions();
@@ -45,7 +53,8 @@ export default function Prescriptions() {
 
   const filteredPrescriptions = prescriptions.filter(p =>
     (p.patient_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.medication_name || "").toLowerCase().includes(searchTerm.toLowerCase())
+    (p.doctor_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.medications || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading prescriptions...</p></div>;
@@ -53,12 +62,21 @@ export default function Prescriptions() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-6xl mx-auto">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-        >
-          ← Back
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
 
         <h1 className="text-3xl font-bold text-dark mb-2">💊 Prescriptions</h1>
         <p className="text-gray-600 mb-6">View and manage all prescriptions</p>
@@ -104,7 +122,7 @@ export default function Prescriptions() {
                     <td className="px-6 py-4">{prescription.doctor_name || "N/A"}</td>
                     <td className="px-6 py-4">
                       <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold">
-                        {prescription.medication_name || "N/A"}
+                        {prescription.medications || "N/A"}
                       </span>
                     </td>
                     <td className="px-6 py-4">{prescription.dosage || "N/A"}</td>

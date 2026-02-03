@@ -49,6 +49,24 @@ export const getTimeSlots = async (req, res) => {
   }
 };
 
+// Get all time slots (admin only)
+export const getAllTimeSlots = async (req, res) => {
+  try {
+    const slots = await executeQuery(
+      `SELECT ts.*, d.id as doctor_id, u.name as doctor_name, d.specialization 
+       FROM doctor_time_slots ts 
+       JOIN doctors d ON ts.doctor_id = d.id 
+       JOIN users u ON d.user_id = u.id 
+       ORDER BY u.name, ts.day_of_week, ts.start_time`
+    );
+
+    res.json({ slots });
+  } catch (error) {
+    console.error('Get all time slots error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Get time slot by ID
 export const getTimeSlotById = async (req, res) => {
   try {

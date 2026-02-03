@@ -5,11 +5,18 @@ import { executeQuery } from '../config/database.js';
 // Register User
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, specialization, experienceYears, consultationFee, licenseNumber } = req.body;
 
     // Validation
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Doctor-specific validation
+    if (role === 'doctor') {
+      if (!specialization || !licenseNumber || !experienceYears || !consultationFee) {
+        return res.status(400).json({ message: 'All doctor fields are required (specialization, license number, experience, and consultation fee)' });
+      }
     }
 
     // Check if user already exists
@@ -33,8 +40,10 @@ export const register = async (req, res) => {
     if (role === 'patient') {
       await executeQuery('INSERT INTO patients (user_id) VALUES (?)', [userId]);
     } else if (role === 'doctor') {
-      await executeQuery('INSERT INTO doctors (user_id, specialization, license_number) VALUES (?, ?, ?)', 
-        [userId, 'General', `LIC-${Date.now()}`]);
+      await executeQuery(
+        'INSERT INTO doctors (user_id, specialization, experience_years, consultation_fee, license_number) VALUES (?, ?, ?, ?, ?)', 
+        [userId, specialization, experienceYears, consultationFee, licenseNumber]
+      );
     }
 
     // Generate token

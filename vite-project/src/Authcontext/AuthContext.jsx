@@ -44,8 +44,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password, confirmPassword, userType) => {
+  const register = async (registerData) => {
     try {
+      const { name, email, password, confirmPassword, userType, specialization, experienceYears, consultationFee, licenseNumber } = registerData;
+
       if (password !== confirmPassword) {
         throw new Error("Passwords do not match");
       }
@@ -54,12 +56,22 @@ export const AuthProvider = ({ children }) => {
         throw new Error("Password must be at least 6 characters");
       }
 
-      const response = await axios.post("/auth/register", {
+      const requestBody = {
         name,
         email,
         password,
         role: userType,
-      });
+      };
+
+      // Add doctor-specific fields
+      if (userType === "doctor") {
+        requestBody.specialization = specialization;
+        requestBody.experienceYears = experienceYears;
+        requestBody.consultationFee = consultationFee;
+        requestBody.licenseNumber = licenseNumber;
+      }
+
+      const response = await axios.post("/auth/register", requestBody);
 
       const { token, user: userData } = response.data;
 

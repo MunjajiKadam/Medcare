@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { doctorAPI, appointmentAPI, patientAPI } from "../../api/api";
-
+import { useAuth } from "../../Authcontext/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard({ title }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [counts, setCounts] = useState({ patients: 0, doctors: 0, appointments: 0, revenue: 0 });
   const [recentAppointments, setRecentAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/admin/login");
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -54,13 +62,22 @@ export default function AdminDashboard({ title }) {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      {/* Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-      >
-        ← Back
-      </button>
+      {/* Header with Logout */}
+      <div className="flex justify-between items-center mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+        >
+          ← Back
+        </button>
+        <button
+          onClick={handleLogout}
+          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+        >
+          <span>🚪</span>
+          Logout
+        </button>
+      </div>
 
       {/* Header */}
       <div className="mb-8">

@@ -3,6 +3,7 @@ import { authMiddleware, roleMiddleware } from '../middleware/authMiddleware.js'
 import {
   createTimeSlot,
   getTimeSlots,
+  getAllTimeSlots,
   getTimeSlotById,
   updateTimeSlot,
   deleteTimeSlot
@@ -25,7 +26,7 @@ router.put('/:id', authMiddleware, roleMiddleware(['doctor']), updateTimeSlot);
 router.delete('/:id', authMiddleware, roleMiddleware(['doctor']), deleteTimeSlot);
 
 // Admin-only routes
-router.get('/admin/all', authMiddleware, roleMiddleware(['admin']), getTimeSlots);
+router.get('/admin/all', authMiddleware, roleMiddleware(['admin']), getAllTimeSlots);
 router.put('/admin/:id', authMiddleware, roleMiddleware(['admin']), updateTimeSlot);
 router.delete('/admin/:id', authMiddleware, roleMiddleware(['admin']), deleteTimeSlot);
 

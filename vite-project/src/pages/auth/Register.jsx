@@ -12,6 +12,10 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     userType: "patient",
+    specialization: "",
+    experienceYears: "",
+    consultationFee: "",
+    licenseNumber: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -26,6 +30,15 @@ export default function Register() {
     else if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
     if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match";
+    
+    // Doctor-specific validation
+    if (formData.userType === "doctor") {
+      if (!formData.specialization) newErrors.specialization = "Specialization is required";
+      if (!formData.licenseNumber) newErrors.licenseNumber = "License number is required";
+      if (!formData.experienceYears) newErrors.experienceYears = "Experience is required";
+      if (!formData.consultationFee) newErrors.consultationFee = "Consultation fee is required";
+    }
+    
     return newErrors;
   };
 
@@ -47,12 +60,28 @@ export default function Register() {
         console.log("📤 [REGISTER PAGE] Attempting registration with data:", {
           name: formData.name,
           email: formData.email,
-          userType: formData.userType
+          userType: formData.userType,
+          specialization: formData.specialization
         });
-        await register(formData.name, formData.email, formData.password, formData.confirmPassword, formData.userType);
+        
+        const registerData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+          userType: formData.userType,
+          ...(formData.userType === "doctor" && {
+            specialization: formData.specialization,
+            experienceYears: formData.experienceYears,
+            consultationFee: formData.consultationFee,
+            licenseNumber: formData.licenseNumber,
+          })
+        };
+        
+        await register(registerData);
         console.log("✅ [REGISTER PAGE] Registration successful for email:", formData.email);
         setSuccessMessage("✓ Account created! Redirecting...");
-        setFormData({ name: "", email: "", password: "", confirmPassword: "", userType: "patient" });
+        setFormData({ name: "", email: "", password: "", confirmPassword: "", userType: "patient", specialization: "", experienceYears: "", consultationFee: "", licenseNumber: "" });
         setErrors({});
         
         // Redirect based on role
@@ -133,6 +162,90 @@ export default function Register() {
               <option value="doctor">Doctor</option>
             </select>
           </div>
+
+          {/* Doctor-specific fields */}
+          {formData.userType === "doctor" && (
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-dark mb-2">Specialization</label>
+                <select
+                  name="specialization"
+                  value={formData.specialization}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition disabled:bg-gray-100 ${
+                    errors.specialization ? "border-red-500" : "border-gray-300 focus:border-accent"
+                  }`}
+                >
+                  <option value="">Select Specialization</option>
+                  <option value="Cardiologist">Cardiologist</option>
+                  <option value="Dermatologist">Dermatologist</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Orthopedic">Orthopedic</option>
+                  <option value="Pediatrician">Pediatrician</option>
+                  <option value="Psychiatrist">Psychiatrist</option>
+                  <option value="Gynecologist">Gynecologist</option>
+                  <option value="Ophthalmologist">Ophthalmologist</option>
+                  <option value="ENT Specialist">ENT Specialist</option>
+                  <option value="General Physician">General Physician</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.specialization && <p className="text-red-500 text-sm mt-1">📍 {errors.specialization}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-dark mb-2">License Number</label>
+                <input
+                  type="text"
+                  name="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={handleChange}
+                  placeholder="e.g., MED-12345"
+                  disabled={loading}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition disabled:bg-gray-100 ${
+                    errors.licenseNumber ? "border-red-500" : "border-gray-300 focus:border-accent"
+                  }`}
+                />
+                {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">📍 {errors.licenseNumber}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">Experience (Years)</label>
+                  <input
+                    type="number"
+                    name="experienceYears"
+                    value={formData.experienceYears}
+                    onChange={handleChange}
+                    placeholder="e.g., 5"
+                    min="0"
+                    disabled={loading}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition disabled:bg-gray-100 ${
+                      errors.experienceYears ? "border-red-500" : "border-gray-300 focus:border-accent"
+                    }`}
+                  />
+                  {errors.experienceYears && <p className="text-red-500 text-sm mt-1">📍 {errors.experienceYears}</p>}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-dark mb-2">Consultation Fee ($)</label>
+                  <input
+                    type="number"
+                    name="consultationFee"
+                    value={formData.consultationFee}
+                    onChange={handleChange}
+                    placeholder="e.g., 50"
+                    min="0"
+                    disabled={loading}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition disabled:bg-gray-100 ${
+                      errors.consultationFee ? "border-red-500" : "border-gray-300 focus:border-accent"
+                    }`}
+                  />
+                  {errors.consultationFee && <p className="text-red-500 text-sm mt-1">📍 {errors.consultationFee}</p>}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Email */}
           <div>

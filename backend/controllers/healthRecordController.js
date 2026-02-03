@@ -29,17 +29,30 @@ export const createHealthRecord = async (req, res) => {
 // Get all health records
 export const getHealthRecords = async (req, res) => {
   try {
-    const patientId = req.user.id;
+    const { role, id } = req.user;
+    let records;
 
-    const patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
-    if (patient.length === 0) {
-      return res.status(400).json({ message: 'Patient record not found' });
+    if (role === 'patient') {
+      const patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [id]);
+      if (patient.length === 0) {
+        return res.status(400).json({ message: 'Patient record not found' });
+      }
+
+      records = await executeQuery(
+        'SELECT * FROM health_records WHERE patient_id = ? ORDER BY record_date DESC',
+        [patient[0].id]
+      );
+    } else if (role === 'admin') {
+      records = await executeQuery(
+        `SELECT hr.*, u.name as patient_name 
+         FROM health_records hr 
+         JOIN patients p ON hr.patient_id = p.id 
+         JOIN users u ON p.user_id = u.id 
+         ORDER BY hr.record_date DESC`
+      );
+    } else {
+      return res.status(403).json({ message: 'Access denied' });
     }
-
-    const records = await executeQuery(
-      'SELECT * FROM health_records WHERE patient_id = ? ORDER BY record_date DESC',
-      [patient[0].id]
-    );
 
     res.json({ records });
   } catch (error) {

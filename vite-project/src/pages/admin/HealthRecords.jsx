@@ -1,9 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { healthRecordAPI } from "../../api/api";
+import { useAuth } from "../../Authcontext/AuthContext";
 
 export default function HealthRecords() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const handleLogout = async () => {
+    if (confirm("Are you sure you want to logout?")) {
+      await logout();
+      navigate("/admin/login");
+    }
+  };
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -17,7 +25,7 @@ export default function HealthRecords() {
     try {
       setLoading(true);
       console.log("📤 [ADMIN HEALTH RECORDS] Fetching health records from API...");
-      const response = await healthRecordAPI.getHealthRecords();
+      const response = await healthRecordAPI.getAllHealthRecordsAdmin();
       console.log("✅ [ADMIN HEALTH RECORDS] Health records received from backend:", response.data);
       setRecords(response.data.records || response.data || []);
     } catch (error) {
@@ -32,7 +40,7 @@ export default function HealthRecords() {
     if (confirm("Are you sure you want to delete this health record?")) {
       try {
         console.log(`📤 [ADMIN HEALTH RECORDS] Deleting health record ID: ${id}`);
-        await healthRecordAPI.deleteHealthRecord(id);
+        await healthRecordAPI.deleteHealthRecordAdmin(id);
         console.log("✅ [ADMIN HEALTH RECORDS] Health record deleted successfully");
         setMessage("✓ Record deleted!");
         fetchHealthRecords();
@@ -53,12 +61,21 @@ export default function HealthRecords() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
-        <button
-          onClick={() => navigate("/admin/dashboard")}
-          className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
-        >
-          ← Back to Dashboard
-        </button>
+        <div className="flex justify-between items-center mb-4">
+          <button
+            onClick={() => navigate("/admin/dashboard")}
+            className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          >
+            ← Back to Dashboard
+          </button>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
 
         <h1 className="text-3xl font-bold text-dark mb-2">🏥 Health Records</h1>
         <p className="text-gray-600 mb-6">View and manage all patient health records</p>
