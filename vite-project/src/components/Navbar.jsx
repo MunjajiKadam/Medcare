@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../Authcontext/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,34 +36,37 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-2xl font-bold text-accent flex items-center gap-2">
+        <Link to="/" className="text-xl sm:text-2xl font-bold text-accent flex items-center gap-2">
           🏥 <span>Med<span className="text-dark">Care</span></span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex gap-8 items-center text-dark font-medium">
+        <div className="hidden md:flex gap-6 lg:gap-8 items-center text-dark font-medium">
           {navLinks.map(link => (
             <Link
               key={link.to}
               to={link.to}
-              className={`transition ${isActive(link.to) ? "text-accent border-b-2 border-accent" : "hover:text-accent"}`}
+              className={`transition text-sm lg:text-base ${isActive(link.to) ? "text-accent border-b-2 border-accent" : "hover:text-accent"}`}
             >
               {link.label}
             </Link>
           ))}
           {!user ? (
             <>
-              <Link to="/login" className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition">
+              <Link to="/login" className="px-3 lg:px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition text-sm lg:text-base">
                 Login
               </Link>
-              <Link to="/register" className="px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition">
+              <Link to="/register" className="px-3 lg:px-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition text-sm lg:text-base">
                 Register
               </Link>
             </>
           ) : (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 lg:gap-4">
+              {/* Notification Bell */}
+              <NotificationBell />
+              
               {/* Dashboard Button */}
               <Link
                 to={
@@ -72,18 +76,20 @@ export default function Navbar() {
                     ? "/doctor/dashboard"
                     : "/admin/dashboard"
                 }
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+                className="px-3 lg:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm lg:text-base"
               >
-                📊 Dashboard
+                <span className="hidden lg:inline">📊 Dashboard</span>
+                <span className="lg:hidden">📊</span>
               </Link>
 
               {/* User Profile Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition flex items-center gap-2"
+                  className="px-3 lg:px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm lg:text-base"
                 >
-                  👤 {user.name}
+                  <span className="hidden lg:inline">👤 {user.name}</span>
+                  <span className="lg:hidden">👤</span>
                 </button>
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
@@ -114,15 +120,19 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button - Only show for non-logged-in users or when there are navigation links */}
-        {(!user || navLinks.length > 0) && (
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-2xl text-accent"
-          >
-            {mobileOpen ? "✕" : "☰"}
-          </button>
-        )}
+        {/* Mobile Menu Button */}
+        <div className="md:hidden flex items-center gap-2">
+          {user && <NotificationBell />}
+          {(!user || navLinks.length > 0 || user) && (
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="text-2xl text-accent p-1"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? "✕" : "☰"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Mobile Navigation - Only show for non-logged-in users */}

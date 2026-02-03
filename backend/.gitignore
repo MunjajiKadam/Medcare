@@ -11,6 +11,8 @@ build/
 *.log
 
 
- Admin: admin@example.com / admin123
+   Admin: admin@example.com / admin123
+
    Doctor: manjudoctor@example.com / doctor123
+   
    Patient: manju@example.com / patient123

@@ -1,4 +1,5 @@
 import { executeQuery } from '../config/database.js';
+import { createNotification } from './notificationController.js';
 
 // Create Appointment
 export const createAppointment = async (req, res) => {
@@ -72,6 +73,25 @@ export const createAppointment = async (req, res) => {
     console.log("📍 [APPOINTMENT] New Appointment ID:", result.insertId);
     console.log("========== 📅 APPOINTMENT CREATION SUCCESS ==========\n");
 
+    // Send notification to patient
+    await createNotification(
+      patientId,
+      '📅 Appointment Scheduled',
+      `Your appointment has been scheduled for ${appointmentDate} at ${appointmentTime}`,
+      'appointment'
+    );
+
+    // Get doctor's user_id and send notification
+    const doctorUser = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [doctorId]);
+    if (doctorUser.length > 0) {
+      await createNotification(
+        doctorUser[0].user_id,
+        '📅 New Appointment',
+        `New appointment scheduled for ${appointmentDate} at ${appointmentTime}`,
+        'appointment'
+      );
+    }
+
     res.status(201).json({
       message: 'Appointment created successfully',
       appointmentId: result.insertId,
@@ -110,9 +130,13 @@ export const getAppointments = async (req, res) => {
         [patient[0].id]
       );
     } else if (role === 'doctor') {
-      const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [id]);
+      let doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [id]);
       if (doctor.length === 0) {
-        return res.status(400).json({ message: 'Doctor record not found' });
+        const result = await executeQuery(
+          'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+          [id, 'General Physician', `LIC-${Date.now()}`, 0, 50]
+        );
+        doctor = [{ id: result.insertId }];
       }
       appointments = await executeQuery(
         'SELECT a.*, u.name as patient_name, p.blood_type FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN users u ON p.user_id = u.id WHERE a.doctor_id = ? ORDER BY a.appointment_date DESC',
@@ -212,6 +236,31 @@ export const updateAppointment = async (req, res) => {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
+    // Send notification when status changes
+    if (status) {
+      const appointment = await executeQuery(
+        'SELECT a.*, p.user_id as patient_user_id, d.user_id as doctor_user_id FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN doctors d ON a.doctor_id = d.id WHERE a.id = ?',
+        [id]
+      );
+      
+      if (appointment.length > 0) {
+        const appt = appointment[0];
+        let notifTitle = '📅 Appointment Updated';
+        let notifMessage = `Your appointment status has been updated to ${status}`;
+        
+        if (status === 'confirmed') {
+          notifTitle = '✅ Appointment Confirmed';
+          notifMessage = `Your appointment for ${appt.appointment_date} has been confirmed`;
+        } else if (status === 'completed') {
+          notifTitle = '✅ Appointment Completed';
+          notifMessage = `Your appointment has been completed`;
+        }
+        
+        // Notify patient
+        await createNotification(appt.patient_user_id, notifTitle, notifMessage, 'appointment');
+      }
+    }
+
     console.log(`✅ [APPOINTMENT UPDATE] Appointment updated successfully`);
     res.json({ message: 'Appointment updated successfully' });
   } catch (error) {
@@ -225,6 +274,12 @@ export const cancelAppointment = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Get appointment details before cancelling
+    const appointment = await executeQuery(
+      'SELECT a.*, p.user_id as patient_user_id, d.user_id as doctor_user_id FROM appointments a JOIN patients p ON a.patient_id = p.id JOIN doctors d ON a.doctor_id = d.id WHERE a.id = ?',
+      [id]
+    );
+
     const result = await executeQuery(
       'UPDATE appointments SET status = ? WHERE id = ?',
       ['cancelled', id]
@@ -232,6 +287,16 @@ export const cancelAppointment = async (req, res) => {
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Appointment not found' });
+    }
+
+    // Send cancellation notifications
+    if (appointment.length > 0) {
+      const appt = appointment[0];
+      const notifMessage = `Appointment for ${appt.appointment_date} has been cancelled`;
+      
+      // Notify both patient and doctor
+      await createNotification(appt.patient_user_id, '❌ Appointment Cancelled', notifMessage, 'appointment');
+      await createNotification(appt.doctor_user_id, '❌ Appointment Cancelled', notifMessage, 'appointment');
     }
 
     res.json({ message: 'Appointment cancelled successfully' });

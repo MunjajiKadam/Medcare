@@ -31,7 +31,15 @@ export const getTimeSlots = async (req, res) => {
   try {
     const { doctorId } = req.params;
     const { doctor_id } = req.query;
-    const id = doctorId || doctor_id;
+    let id = doctorId || doctor_id;
+
+    // If no ID provided and user is authenticated as doctor, use their ID
+    if (!id && req.user && req.user.role === 'doctor') {
+      const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [req.user.id]);
+      if (doctor.length > 0) {
+        id = doctor[0].id;
+      }
+    }
 
     if (!id) {
       return res.status(400).json({ message: 'Doctor ID is required' });

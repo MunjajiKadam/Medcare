@@ -15,6 +15,7 @@ import timeSlotRoutes from './routes/timeSlotRoutes.js';
 import consultationNotesRoutes from './routes/consultationNotesRoutes.js';
 import diagnosisRoutes from './routes/diagnosisRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 dotenv.config();
 
@@ -59,6 +60,7 @@ app.use('/api/time-slots', timeSlotRoutes);
 app.use('/api/consultation-notes', consultationNotesRoutes);
 app.use('/api/diagnoses', diagnosisRoutes);
 app.use('/api/availability', availabilityRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Root endpoint
 app.get('/api', (req, res) => {

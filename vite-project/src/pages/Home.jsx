@@ -61,20 +61,20 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-background min-h-[80vh] flex items-center py-20">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-2 gap-10">
+      <section className="bg-background min-h-[70vh] sm:min-h-[80vh] flex items-center py-12 sm:py-16 lg:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-dark mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-dark mb-4 sm:mb-6">
               Your Health, <span className="text-accent">Our Priority</span>
             </h1>
-            <p className="text-gray-600 mb-6 text-lg">
+            <p className="text-gray-600 mb-6 text-base sm:text-lg">
               Connect with trusted healthcare professionals and book appointments at your convenience. Quality healthcare is just a click away.
             </p>
-            <div className="flex gap-4 flex-wrap">
-              <a href="/doctors" className="px-8 py-3 bg-primary text-dark rounded-lg font-semibold hover:shadow-lg transition">
+            <div className="flex gap-3 sm:gap-4 flex-wrap">
+              <a href="/doctors" className="px-6 sm:px-8 py-2.5 sm:py-3 bg-primary text-dark rounded-lg font-semibold hover:shadow-lg transition text-sm sm:text-base active:scale-95">
                 Find Doctors
               </a>
-              <a href="/register" className="px-8 py-3 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition">
+              <a href="/register" className="px-6 sm:px-8 py-2.5 sm:py-3 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition text-sm sm:text-base active:scale-95">
                 Get Started
               </a>
             </div>
@@ -89,48 +89,48 @@ export default function Home() {
       </section>
 
       {/* Features Section (static highlights) */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose MedCare?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
-              <div className="text-4xl mb-4">👨‍⚕️</div>
-              <h3 className="text-xl font-semibold text-dark mb-2">Expert Doctors</h3>
-              <p className="text-gray-600">Access to certified medical professionals</p>
+      <section className="py-12 sm:py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Choose MedCare?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
+            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">👨‍⚕️</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">Expert Doctors</h3>
+              <p className="text-sm sm:text-base text-gray-600">Access to certified medical professionals</p>
             </div>
-            <div className="p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
-              <div className="text-4xl mb-4">📅</div>
-              <h3 className="text-xl font-semibold text-dark mb-2">Easy Booking</h3>
-              <p className="text-gray-600">Book appointments in seconds</p>
+            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📅</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">Easy Booking</h3>
+              <p className="text-sm sm:text-base text-gray-600">Book appointments in seconds</p>
             </div>
-            <div className="p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
-              <div className="text-4xl mb-4">💬</div>
-              <h3 className="text-xl font-semibold text-dark mb-2">24/7 Support</h3>
-              <p className="text-gray-600">Round the clock customer support</p>
+            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+              <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">💬</div>
+              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">24/7 Support</h3>
+              <p className="text-sm sm:text-base text-gray-600">Round the clock customer support</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Section (from DB) */}
-      <section className="py-16 bg-accent text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
+      <section className="py-12 sm:py-16 bg-accent text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 text-center">
             {loading ? (
-              <div className="col-span-3">Loading stats…</div>
+              <div className="col-span-1 sm:col-span-3">Loading stats…</div>
             ) : (
               <>
                 <div>
-                  <div className="text-4xl font-bold mb-2">{counts.patients}</div>
-                  <div className="text-lg opacity-90">Patients</div>
+                  <div className="text-3xl sm:text-4xl font-bold mb-2">{counts.patients}</div>
+                  <div className="text-base sm:text-lg opacity-90">Patients</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold mb-2">{counts.doctors}</div>
-                  <div className="text-lg opacity-90">Verified Doctors</div>
+                  <div className="text-3xl sm:text-4xl font-bold mb-2">{counts.doctors}</div>
+                  <div className="text-base sm:text-lg opacity-90">Verified Doctors</div>
                 </div>
                 <div>
-                  <div className="text-4xl font-bold mb-2">{counts.appointments}</div>
-                  <div className="text-lg opacity-90">Appointments</div>
+                  <div className="text-3xl sm:text-4xl font-bold mb-2">{counts.appointments}</div>
+                  <div className="text-base sm:text-lg opacity-90">Appointments</div>
                 </div>
               </>
             )}
@@ -139,11 +139,11 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-background">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-dark mb-4">Ready to Book an Appointment?</h2>
-          <p className="text-gray-600 mb-8 text-lg">Join thousands of patients who trust MedCare for their healthcare needs</p>
-          <a href="/doctors" className="inline-block px-10 py-4 bg-primary text-dark rounded-lg font-semibold hover:shadow-xl transition">
+      <section className="py-12 sm:py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-dark mb-4">Ready to Book an Appointment?</h2>
+          <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">Join thousands of patients who trust MedCare for their healthcare needs</p>
+          <a href="/doctors" className="inline-block px-8 sm:px-10 py-3 sm:py-4 bg-primary text-dark rounded-lg font-semibold hover:shadow-xl transition text-sm sm:text-base active:scale-95">
             Explore Doctors Now
           </a>
         </div>

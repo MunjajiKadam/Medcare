@@ -18,8 +18,11 @@ export default function DoctorDashboard({ title }) {
   const fetchAvailabilityStatus = async () => {
     try {
       const availRes = await doctorAPI.getProfile();
-      if (availRes.data && availRes.data.availability_status) {
-        setAvailabilityStatus(availRes.data.availability_status);
+      if (availRes.data) {
+        if (mounted) setDoctorProfile(availRes.data);
+        if (availRes.data.availability_status) {
+          if (mounted) setAvailabilityStatus(availRes.data.availability_status);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch availability status:', err);
@@ -36,7 +39,7 @@ export default function DoctorDashboard({ title }) {
         const appts = aRes.data.appointments || [];
         if (mounted) setAppointments(appts.slice(0, 4));
 
-        // Fetch availability status
+        // Fetch availability status and profile
         await fetchAvailabilityStatus();
       } catch (err) {
         console.error('Failed to load doctor appointments', err);
@@ -49,73 +52,78 @@ export default function DoctorDashboard({ title }) {
   }, [user]);
 
   const stats = [
-    { icon: "👥", label: "Total Patients", value: appointments.length, change: "+24 this month" },
+    { icon: "👥", label: "Total Patients", value: appointments.length, change: `${appointments.length} appointments` },
     { icon: "📅", label: "Appointments", value: appointments.length, change: `${appointments.length} total` },
-    { icon: "⭐", label: "Rating", value: "4.9", change: "From 245 reviews" },
-    { icon: "💰", label: "Earnings", value: `$${appointments.length * 50}`, change: "This month" },
+    { icon: "⭐", label: "Rating", value: doctorProfile?.rating || "0", change: `From ${doctorProfile?.total_reviews || 0} reviews` },
+    { icon: "💰", label: "Consultation Fee", value: `$${doctorProfile?.consultation_fee || 0}`, change: "Per visit" },
   ];
 
   const quickActions = [
     { icon: "📝", label: "Add Notes", action: () => navigate("/doctor/appointments") },
     { icon: "💊", label: "Prescribe", action: () => navigate("/doctor/appointments") },
-    { icon: "🔍", label: "Diagnose", action: () => navigate("/doctor/appointments") },
+    { icon: "⏰", label: "Time Slots", action: () => navigate("/doctor/time-slots") },
     { icon: "⚙️", label: "Availability", action: () => setAvailabilityModal(true) },
   ];
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="max-w-6xl mx-auto">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+            className="mb-4 px-3 sm:px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm active:scale-95"
           >
             ← Back
           </button>
 
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-dark mb-2">Dr. Sarah Johnson's Dashboard</h1>
-            <p className="text-gray-600">Cardiologist | 15+ years experience</p>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-dark mb-2">
+              {doctorProfile?.name ? `Dr. ${doctorProfile.name}'s Dashboard` : 'Doctor Dashboard'}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              {doctorProfile?.specialization || 'Physician'} 
+              {doctorProfile?.experience_years ? ` | ${doctorProfile.experience_years}+ years experience` : ''}
+            </p>
           </div>
 
           {/* Stats */}
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
             {stats.map((stat, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="text-3xl">{stat.icon}</div>
+              <div key={idx} className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow hover:shadow-lg transition">
+                <div className="flex items-start justify-between mb-2 sm:mb-4">
+                  <div className="text-2xl sm:text-3xl">{stat.icon}</div>
                 </div>
-                <h3 className="text-gray-600 text-sm mb-1">{stat.label}</h3>
-                <p className="text-3xl font-bold text-dark mb-2">{stat.value}</p>
+                <h3 className="text-gray-600 text-xs sm:text-sm mb-1">{stat.label}</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-dark mb-1 sm:mb-2">{stat.value}</p>
                 <p className="text-xs text-accent font-semibold">{stat.change}</p>
               </div>
             ))}
           </div>
 
           {/* Main Content */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Today's Schedule */}
-            <div className="md:col-span-2 bg-white p-6 rounded-xl shadow">
-              <h2 className="text-2xl font-bold text-dark mb-6">Appointments</h2>
+            <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow">
+              <h2 className="text-xl sm:text-2xl font-bold text-dark mb-4 sm:mb-6">Appointments</h2>
               {loading ? (
                 <p>Loading...</p>
               ) : appointments.length > 0 ? (
                 <div className="space-y-3">
                   {appointments.map((apt) => (
-                    <div key={apt.id} className="flex items-center justify-between p-4 bg-background rounded-lg hover:shadow transition">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="text-2xl">👤</div>
-                        <div>
-                          <p className="font-semibold text-dark">{apt.patient_name || 'Patient'}</p>
-                          <p className="text-sm text-gray-600">{apt.reason_for_visit || 'Consultation'}</p>
+                    <div key={apt.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 p-3 sm:p-4 bg-background rounded-lg hover:shadow transition">
+                      <div className="flex items-center gap-3 sm:gap-4 flex-1">
+                        <div className="text-xl sm:text-2xl">👤</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-dark text-sm sm:text-base truncate">{apt.patient_name || 'Patient'}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{apt.reason_for_visit || 'Consultation'}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-dark">{apt.appointment_time}</p>
-                        <span className={`text-xs px-2 py-1 rounded inline-block mt-1 ${
+                      <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
+                        <p className="font-bold text-dark text-sm sm:text-base">{apt.appointment_time}</p>
+                        <span className={`text-xs px-2 py-1 rounded inline-block ${
                           apt.status === "completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                         }`}>
                           {apt.status}
@@ -125,22 +133,22 @@ export default function DoctorDashboard({ title }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600">No appointments scheduled</p>
+                <p className="text-sm sm:text-base text-gray-600">No appointments scheduled</p>
               )}
-              <button className="w-full mt-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-background transition font-semibold">
+              <button className="w-full mt-4 py-2 border-2 border-accent text-accent rounded-lg hover:bg-background transition font-semibold text-sm sm:text-base active:scale-95">
                 View Full Schedule
               </button>
             </div>
 
             {/* Availability Status */}
-            <div className="bg-white p-6 rounded-xl shadow">
-              <h2 className="text-xl font-bold text-dark mb-6">Availability Status</h2>
-              <div className={`p-4 bg-background rounded-lg border-l-4 ${
+            <div className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow">
+              <h2 className="text-lg sm:text-xl font-bold text-dark mb-4 sm:mb-6">Availability Status</h2>
+              <div className={`p-3 sm:p-4 bg-background rounded-lg border-l-4 ${
                 availabilityStatus === 'available' ? 'border-green-500' :
                 availabilityStatus === 'busy' ? 'border-yellow-500' : 'border-red-500'
               }`}>
-                <p className="text-sm text-gray-600 mb-2">Status</p>
-                <p className={`font-semibold ${
+                <p className="text-xs sm:text-sm text-gray-600 mb-2">Status</p>
+                <p className={`font-semibold text-sm sm:text-base ${
                   availabilityStatus === 'available' ? 'text-green-600' :
                   availabilityStatus === 'busy' ? 'text-yellow-600' : 'text-red-600'
                 }`}>
@@ -159,15 +167,15 @@ export default function DoctorDashboard({ title }) {
           </div>
 
           {/* Quick Navigation Links */}
-          <div className="grid md:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 sm:mt-8">
             {quickActions.map((action, idx) => (
               <button
                 key={idx}
                 onClick={action.action}
-                className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition text-center"
+                className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow hover:shadow-lg transition text-center active:scale-95"
               >
-                <div className="text-3xl mb-3">{action.icon}</div>
-                <p className="text-dark font-semibold">{action.label}</p>
+                <div className="text-2xl sm:text-3xl mb-2 sm:mb-3">{action.icon}</div>
+                <p className="text-dark font-semibold text-xs sm:text-sm lg:text-base">{action.label}</p>
               </button>
             ))}
           </div>

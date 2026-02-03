@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { availabilityAPI } from "../../api/api";
+import { useNavigate } from "react-router-dom";
 
 export default function AvailabilityModal({ isOpen, onClose, onSuccess }) {
+  const navigate = useNavigate();
   const [currentStatus, setCurrentStatus] = useState("available");
   const [newStatus, setNewStatus] = useState("available");
   const [reason, setReason] = useState("");
@@ -184,13 +186,16 @@ export default function AvailabilityModal({ isOpen, onClose, onSuccess }) {
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-gray-600">Manage your time slots for appointments</p>
-                <p className="text-xs text-gray-500 mt-1">Navigate to the Time Slots page to add/edit your availability schedule</p>
+                <p className="text-xs text-gray-500 mt-1">Set your weekly availability schedule</p>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => {
+                  onClose();
+                  navigate("/doctor/time-slots");
+                }}
                 className="w-full py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition font-semibold"
               >
-                ✓ Done
+                ⏰ Manage Time Slots →
               </button>
             </div>
           )}

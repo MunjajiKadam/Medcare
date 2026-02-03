@@ -12,16 +12,16 @@ import {
 
 const router = express.Router();
 
-// Public routes - more specific routes first
-router.get('/specialty/:specialization', getDoctorsBySpecialization);
-router.get('/', getAllDoctors);
-router.get('/:id/reviews', getDoctorReviews);
-router.get('/:id', getDoctorById);
-
-// Protected routes
+// Protected routes - MUST come before dynamic routes
 router.get('/profile/me', authMiddleware, roleMiddleware(['doctor']), getCurrentDoctorProfile);
 router.get('/profile/:id', authMiddleware, getDoctorProfile);
 router.put('/profile/:id', authMiddleware, updateDoctorProfile);
+
+// Public routes - more specific routes first
+router.get('/specialty/:specialization', getDoctorsBySpecialization);
+router.get('/:id/reviews', getDoctorReviews);
+router.get('/', getAllDoctors);
+router.get('/:id', getDoctorById);
 
 // Admin-only routes - UPDATE doctor
 router.put('/admin/:id', authMiddleware, roleMiddleware(['admin']), updateDoctorProfile);

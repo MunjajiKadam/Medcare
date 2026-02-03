@@ -23,6 +23,23 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Cleanup on window/tab close or refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear session data when tab/window closes
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    };
+
+    // Add event listener for beforeunload (tab/window close)
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   const login = async (email, password, userType) => {
     try {
       const response = await axios.post("/auth/login", {

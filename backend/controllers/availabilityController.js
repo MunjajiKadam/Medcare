@@ -43,9 +43,13 @@ export const updateAvailabilityStatus = async (req, res) => {
     const { status, reason, end_date } = req.body;
     const doctorId = req.user.id;
 
-    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
+    let doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
     if (doctor.length === 0) {
-      return res.status(400).json({ message: 'Doctor record not found' });
+      const result = await executeQuery(
+        'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+        [doctorId, 'General Physician', `LIC-${Date.now()}`, 0, 50]
+      );
+      doctor = [{ id: result.insertId }];
     }
 
     // Update doctor status
@@ -75,9 +79,13 @@ export const upsertTimeSlot = async (req, res) => {
     const { day_of_week, start_time, end_time, is_available } = req.body;
     const doctorId = req.user.id;
 
-    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
+    let doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
     if (doctor.length === 0) {
-      return res.status(400).json({ message: 'Doctor record not found' });
+      const result = await executeQuery(
+        'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+        [doctorId, 'General Physician', `LIC-${Date.now()}`, 0, 50]
+      );
+      doctor = [{ id: result.insertId }];
     }
 
     // Check if slot exists for this day
@@ -173,9 +181,22 @@ export const getAvailabilityHistory = async (req, res) => {
   try {
     const doctorId = req.user.id;
 
-    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
+    let doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
+    
+    // Auto-create doctor record if it doesn't exist
     if (doctor.length === 0) {
-      return res.status(400).json({ message: 'Doctor record not found' });
+      console.log('Doctor record not found, creating one for user_id:', doctorId);
+      try {
+        const result = await executeQuery(
+          'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+          [doctorId, 'General Physician', `LIC-${Date.now()}`, 0, 50]
+        );
+        doctor = [{ id: result.insertId }];
+        console.log('Doctor record created with id:', result.insertId);
+      } catch (createError) {
+        console.error('Failed to create doctor record:', createError);
+        return res.status(400).json({ message: 'Doctor record not found and could not be created. Please contact support.' });
+      }
     }
 
     const history = await executeQuery(
@@ -183,7 +204,13 @@ export const getAvailabilityHistory = async (req, res) => {
       [doctor[0].id]
     );
 
-    res.json({ history });
+    // Also get time slots
+    const timeSlots = await executeQuery(
+      'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY FIELD(day_of_week, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"), start_time',
+      [doctor[0].id]
+    );
+
+    res.json({ history, timeSlots });
   } catch (error) {
     console.error('Get availability history error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -69,6 +69,8 @@ export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
+    console.log('🔐 [LOGIN] Attempting login:', { email, role });
+
     // Validation
     if (!email || !password || !role) {
       return res.status(400).json({ message: 'Email, password, and role are required' });
@@ -78,20 +80,52 @@ export const login = async (req, res) => {
     const user = await executeQuery('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
 
     if (user.length === 0) {
+      console.log('❌ [LOGIN] User not found:', { email, role });
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const userData = user[0];
+    console.log('✅ [LOGIN] User found:', { id: userData.id, email: userData.email, role: userData.role });
 
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, userData.password);
     if (!isPasswordValid) {
+      console.log('❌ [LOGIN] Invalid password');
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     // Check user status
     if (userData.status !== 'active') {
+      console.log('❌ [LOGIN] User account not active');
       return res.status(403).json({ message: 'User account is not active' });
+    }
+
+    // For doctors, ensure doctor record exists
+    if (role === 'doctor') {
+      const doctorCheck = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [userData.id]);
+      console.log('👨‍⚕️ [LOGIN] Doctor record check:', doctorCheck.length > 0 ? 'EXISTS' : 'MISSING');
+      
+      if (doctorCheck.length === 0) {
+        console.log('⚠️ [LOGIN] Creating missing doctor record for user_id:', userData.id);
+        // Auto-create doctor record with default values
+        await executeQuery(
+          'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+          [userData.id, 'General Physician', `LIC-${userData.id}-${Date.now()}`, 0, 50.00]
+        );
+        console.log('✅ [LOGIN] Doctor record created');
+      }
+    }
+
+    // For patients, ensure patient record exists
+    if (role === 'patient') {
+      const patientCheck = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [userData.id]);
+      console.log('👤 [LOGIN] Patient record check:', patientCheck.length > 0 ? 'EXISTS' : 'MISSING');
+      
+      if (patientCheck.length === 0) {
+        console.log('⚠️ [LOGIN] Creating missing patient record for user_id:', userData.id);
+        await executeQuery('INSERT INTO patients (user_id) VALUES (?)', [userData.id]);
+        console.log('✅ [LOGIN] Patient record created');
+      }
     }
 
     // Generate token
@@ -100,6 +134,8 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    console.log('✅ [LOGIN] Login successful for:', userData.email);
 
     res.json({
       message: 'Login successful',
@@ -113,7 +149,7 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('❌ [LOGIN] Login error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -1,4 +1,5 @@
 import { executeQuery } from '../config/database.js';
+import { createNotification } from './notificationController.js';
 
 // Create prescription
 export const createPrescription = async (req, res) => {
@@ -15,6 +16,17 @@ export const createPrescription = async (req, res) => {
       'INSERT INTO prescriptions (appointment_id, doctor_id, patient_id, medications, dosage, duration, instructions) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [appointment_id, doctor[0].id, patient_id, medications, dosage, duration, instructions]
     );
+
+    // Get patient's user_id and send notification
+    const patient = await executeQuery('SELECT user_id FROM patients WHERE id = ?', [patient_id]);
+    if (patient.length > 0) {
+      await createNotification(
+        patient[0].user_id,
+        '💊 New Prescription',
+        `You have received a new prescription for ${medications}`,
+        'prescription'
+      );
+    }
 
     res.status(201).json({
       message: 'Prescription created successfully',

@@ -89,7 +89,7 @@ export default function AdminLogin() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@medcare.com"
+              placeholder="any@medcare.com"
               disabled={loading}
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none transition disabled:bg-gray-100 ${
                 errors.email ? "border-red-500" : "border-gray-300 focus:border-accent"
@@ -112,13 +112,6 @@ export default function AdminLogin() {
               }`}
             />
             {errors.password && <p className="text-red-500 text-sm mt-1">📍 {errors.password}</p>}
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded-lg text-xs text-gray-700">
-            <p className="font-semibold mb-1">🔑 Demo Admin Credentials:</p>
-            <p>Email: admin@example.com</p>
-            <p>Password: 123456</p>
           </div>
 
           {/* Login Button */}

@@ -114,13 +114,21 @@ export const getCurrentDoctorProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Get user ID from the auth middleware
 
-    const doctor = await executeQuery(
+    let doctor = await executeQuery(
       'SELECT d.*, u.name, u.email, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.user_id = ?',
       [userId]
     );
 
     if (doctor.length === 0) {
-      return res.status(404).json({ message: 'Doctor profile not found' });
+      // Auto-create doctor record
+      const result = await executeQuery(
+        'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
+        [userId, 'General Physician', `LIC-${Date.now()}`, 0, 50]
+      );
+      doctor = await executeQuery(
+        'SELECT d.*, u.name, u.email, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.user_id = ?',
+        [userId]
+      );
     }
 
     res.json(doctor[0]);

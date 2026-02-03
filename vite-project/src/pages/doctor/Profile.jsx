@@ -24,11 +24,10 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       console.log("📤 [DOCTOR PROFILE] Fetching doctor profile from API...");
-      // Note: You may need to adjust this endpoint based on your backend implementation
-      const response = await doctorAPI.getAllDoctors();
+      const response = await doctorAPI.getProfile();
       console.log("✅ [DOCTOR PROFILE] Doctor data received from backend:", response.data);
-      if (response.data.doctors && response.data.doctors.length > 0) {
-        const doctorData = response.data.doctors[0];
+      if (response.data) {
+        const doctorData = response.data;
         setProfile(doctorData);
         setFormData({
           specialization: doctorData.specialization || "",

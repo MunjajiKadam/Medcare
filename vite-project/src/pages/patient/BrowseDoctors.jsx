@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { doctorAPI } from "../../api/api";
+import SkeletonCard from "../../components/SkeletonCard";
+import EmptyState from "../../components/EmptyState";
 
 export default function BrowseDoctors() {
   const navigate = useNavigate();
@@ -37,7 +39,25 @@ export default function BrowseDoctors() {
     return matchesSpecialty && matchesSearch;
   });
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading doctors...</p></div>;
+  if (loading) return (
+    <div className="min-h-screen bg-background px-4 py-12">
+      <div className="max-w-6xl mx-auto">
+        <div className="h-10 bg-gray-200 rounded w-24 mb-8 animate-pulse"></div>
+        <div className="text-center mb-12">
+          <div className="h-12 bg-gray-200 rounded w-96 mx-auto mb-4 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 rounded w-64 mx-auto animate-pulse"></div>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <SkeletonCard type="doctor" />
+          <SkeletonCard type="doctor" />
+          <SkeletonCard type="doctor" />
+          <SkeletonCard type="doctor" />
+          <SkeletonCard type="doctor" />
+          <SkeletonCard type="doctor" />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background px-4 py-12">
@@ -67,26 +87,31 @@ export default function BrowseDoctors() {
       )}
 
       <div className="max-w-6xl mx-auto mb-8">
+        <label htmlFor="doctor-search" className="sr-only">Search doctors by name</label>
         <input
+          id="doctor-search"
           type="text"
           placeholder="🔍 Search doctors by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-6 py-3 border-2 border-accent rounded-lg focus:outline-none bg-white"
+          className="w-full px-6 py-3 border-2 border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white"
+          aria-label="Search doctors by name"
         />
       </div>
 
       <div className="max-w-6xl mx-auto mb-8">
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2" role="group" aria-label="Filter by specialty">
           {specialties.map(specialty => (
             <button
               key={specialty}
               onClick={() => setSelectedSpecialty(specialty)}
-              className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap transition ${
+              className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap transition focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 active:scale-95 ${
                 selectedSpecialty === specialty
                   ? "bg-accent text-white"
                   : "bg-white text-accent border-2 border-accent hover:bg-background"
               }`}
+              aria-pressed={selectedSpecialty === specialty}
+              aria-label={`Filter by ${specialty}`}
             >
               {specialty}
             </button>
@@ -99,14 +124,23 @@ export default function BrowseDoctors() {
         {filteredDoctors.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDoctors.map((doctor) => (
-              <div
+              <article
                 key={doctor.id}
-                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden cursor-pointer group"
+                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden cursor-pointer group focus-within:ring-2 focus-within:ring-accent"
                 onClick={() => navigate(`/patient/doctor/${doctor.id}`)}
+                role="button"
+                tabIndex="0"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/patient/doctor/${doctor.id}`);
+                  }
+                }}
+                aria-label={`View Dr. ${doctor.name || "N/A"} profile`}
               >
                 {/* Doctor Header */}
                 <div className="bg-gradient-to-r from-secondary to-blue-600 p-6 text-white text-center group-hover:from-blue-700 group-hover:to-blue-700 transition">
-                  <div className="text-5xl mb-3">👨‍⚕️</div>
+                  <div className="text-5xl mb-3" role="img" aria-label="Doctor">👨‍⚕️</div>
                   <h2 className="text-lg font-bold">Dr. {doctor.name || "N/A"}</h2>
                   <p className="text-sm opacity-90">{doctor.specialization || "N/A"}</p>
                 </div>
@@ -116,9 +150,9 @@ export default function BrowseDoctors() {
                   {/* Rating */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Rating</span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1" aria-label={`Rated ${doctor.rating || 0} out of 5 stars based on ${doctor.total_reviews || 0} reviews`}>
                       <span className="text-lg font-bold text-accent">{doctor.rating || 0}</span>
-                      <span className="text-yellow-400">★</span>
+                      <span className="text-yellow-400" aria-hidden="true">★</span>
                       <span className="text-sm text-gray-500">({doctor.total_reviews || 0})</span>
                     </div>
                   </div>
@@ -157,7 +191,8 @@ export default function BrowseDoctors() {
                         e.stopPropagation();
                         navigate(`/patient/book/${doctor.id}`);
                       }}
-                      className="py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold text-sm"
+                      className="py-2 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold text-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                      aria-label={`Book appointment with Dr. ${doctor.name}`}
                     >
                       📅 Book Now
                     </button>
@@ -166,19 +201,29 @@ export default function BrowseDoctors() {
                         e.stopPropagation();
                         navigate(`/patient/doctor/${doctor.id}`);
                       }}
-                      className="py-2 bg-background text-accent rounded-lg hover:bg-gray-100 transition font-semibold text-sm border-2 border-accent"
+                      className="py-2 bg-background text-accent rounded-lg hover:bg-gray-100 transition font-semibold text-sm border-2 border-accent active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                      aria-label={`View Dr. ${doctor.name} full profile`}
                     >
                       👁️ View
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">No doctors found matching your criteria.</p>
-          </div>
+          <EmptyState
+            icon="🔍"
+            title="No Doctors Found"
+            description={searchTerm || selectedSpecialty !== "All" 
+              ? "No doctors match your search criteria. Try adjusting your filters."
+              : "No doctors available at the moment."}
+            actionLabel={searchTerm || selectedSpecialty !== "All" ? "Clear Filters" : ""}
+            onAction={searchTerm || selectedSpecialty !== "All" ? () => {
+              setSearchTerm("");
+              setSelectedSpecialty("All");
+            } : null}
+          />
         )}
       </div>
     </div>
