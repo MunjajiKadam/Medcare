@@ -4,9 +4,11 @@ import {
   getUnreadCount, 
   markAsRead, 
   markAllAsRead, 
-  deleteNotification 
+  deleteNotification,
+  sendNotificationToPatient,
+  getDoctorPatients
 } from '../controllers/notificationController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authMiddleware, roleMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -16,5 +18,9 @@ router.get('/unread-count', authMiddleware, getUnreadCount);
 router.put('/:id/read', authMiddleware, markAsRead);
 router.put('/mark-all-read', authMiddleware, markAllAsRead);
 router.delete('/:id', authMiddleware, deleteNotification);
+
+// Doctor-only routes
+router.post('/send-to-patient', authMiddleware, roleMiddleware(['doctor']), sendNotificationToPatient);
+router.get('/doctor/patients', authMiddleware, roleMiddleware(['doctor']), getDoctorPatients);
 
 export default router;

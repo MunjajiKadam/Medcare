@@ -30,7 +30,7 @@ export const createTimeSlot = async (req, res) => {
 export const getTimeSlots = async (req, res) => {
   try {
     const { doctorId } = req.params;
-    const { doctor_id } = req.query;
+    const { doctor_id, date } = req.query;
     let id = doctorId || doctor_id;
 
     // If no ID provided and user is authenticated as doctor, use their ID
@@ -45,10 +45,29 @@ export const getTimeSlots = async (req, res) => {
       return res.status(400).json({ message: 'Doctor ID is required' });
     }
 
-    const slots = await executeQuery(
-      'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY day_of_week, start_time',
-      [id]
-    );
+    let slots;
+    
+    // If date is provided, filter by day of week
+    if (date) {
+      const selectedDate = new Date(date);
+      const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayOfWeek = daysOfWeek[selectedDate.getDay()];
+      
+      console.log(`📅 [TIME SLOTS] Fetching slots for doctor ${id} on ${dayOfWeek} (${date})`);
+      
+      slots = await executeQuery(
+        'SELECT * FROM doctor_time_slots WHERE doctor_id = ? AND day_of_week = ? AND is_available = TRUE ORDER BY start_time',
+        [id, dayOfWeek]
+      );
+      
+      console.log(`✅ [TIME SLOTS] Found ${slots.length} available slots for ${dayOfWeek}`);
+    } else {
+      // Return all slots if no date specified
+      slots = await executeQuery(
+        'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY day_of_week, start_time',
+        [id]
+      );
+    }
 
     res.json({ slots });
   } catch (error) {

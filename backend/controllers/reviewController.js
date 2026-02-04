@@ -6,31 +6,58 @@ export const createReview = async (req, res) => {
     const { doctor_id, rating, review_text } = req.body;
     const patientId = req.user.id;
 
-    const patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
-    if (patient.length === 0) {
-      return res.status(400).json({ message: 'Patient record not found' });
+    console.log('📝 [CREATE REVIEW] Request body:', req.body);
+    console.log('📝 [CREATE REVIEW] Patient user ID:', patientId);
+
+    // Validate required fields
+    if (!doctor_id) {
+      return res.status(400).json({ message: 'Doctor ID is required' });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
     }
+
+    if (!review_text || !review_text.trim()) {
+      return res.status(400).json({ message: 'Review text is required' });
+    }
+
+    const patient = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [patientId]);
+    
+    let patientDbId;
+    if (patient.length === 0) {
+      console.log('📝 [CREATE REVIEW] Patient record not found, creating one...');
+      // Auto-create patient record
+      const patientResult = await executeQuery(
+        'INSERT INTO patients (user_id) VALUES (?)',
+        [patientId]
+      );
+      patientDbId = patientResult.insertId;
+      console.log('📝 [CREATE REVIEW] Patient record created with ID:', patientDbId);
+    } else {
+      patientDbId = patient[0].id;
+    }
+
+    console.log('📝 [CREATE REVIEW] Patient ID:', patientDbId, 'Doctor ID:', doctor_id);
 
     // Check if review already exists
     const existing = await executeQuery(
       'SELECT id FROM reviews WHERE doctor_id = ? AND patient_id = ?',
-      [doctor_id, patient[0].id]
+      [doctor_id, patientDbId]
     );
 
     let result;
     if (existing.length > 0) {
+      console.log('📝 [CREATE REVIEW] Updating existing review');
       result = await executeQuery(
         'UPDATE reviews SET rating = ?, review_text = ? WHERE doctor_id = ? AND patient_id = ?',
-        [rating, review_text, doctor_id, patient[0].id]
+        [rating, review_text, doctor_id, patientDbId]
       );
     } else {
+      console.log('📝 [CREATE REVIEW] Creating new review');
       result = await executeQuery(
         'INSERT INTO reviews (doctor_id, patient_id, rating, review_text) VALUES (?, ?, ?, ?)',
-        [doctor_id, patient[0].id, rating, review_text]
+        [doctor_id, patientDbId, rating, review_text]
       );
     }
 

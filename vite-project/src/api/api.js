@@ -166,4 +166,16 @@ export const availabilityAPI = {
   deleteTimeSlot: (slotId) => axios.delete(`/availability/time-slot/${slotId}`),
 };
 
+// Notification API calls
+export const notificationAPI = {
+  getUserNotifications: () => axios.get('/notifications'),
+  getUnreadCount: () => axios.get('/notifications/unread-count'),
+  markAsRead: (id) => axios.put(`/notifications/${id}/read`),
+  markAllAsRead: () => axios.put('/notifications/mark-all-read'),
+  deleteNotification: (id) => axios.delete(`/notifications/${id}`),
+  // Doctor-specific
+  sendToPatient: (data) => axios.post('/notifications/send-to-patient', data),
+  getDoctorPatients: () => axios.get('/notifications/doctor/patients'),
+};
+
 export default axios;

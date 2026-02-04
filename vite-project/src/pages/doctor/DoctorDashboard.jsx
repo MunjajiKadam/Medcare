@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import AvailabilityModal from "../../components/Modals/AvailabilityModal";
 import { useNavigate } from "react-router-dom";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function DoctorDashboard({ title }) {
   const navigate = useNavigate();
@@ -61,6 +62,7 @@ export default function DoctorDashboard({ title }) {
   const quickActions = [
     { icon: "📝", label: "Add Notes", action: () => navigate("/doctor/appointments") },
     { icon: "💊", label: "Prescribe", action: () => navigate("/doctor/appointments") },
+    { icon: "📬", label: "Send Notification", action: () => navigate("/doctor/send-notification") },
     { icon: "⏰", label: "Time Slots", action: () => navigate("/doctor/time-slots") },
     { icon: "⚙️", label: "Availability", action: () => setAvailabilityModal(true) },
   ];
@@ -122,7 +124,7 @@ export default function DoctorDashboard({ title }) {
                         </div>
                       </div>
                       <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
-                        <p className="font-bold text-dark text-sm sm:text-base">{apt.appointment_time}</p>
+                        <p className="font-bold text-dark text-sm sm:text-base">{formatTime12Hour(apt.appointment_time)}</p>
                         <span className={`text-xs px-2 py-1 rounded inline-block ${
                           apt.status === "completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
                         }`}>

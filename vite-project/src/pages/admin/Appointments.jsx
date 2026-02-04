@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { appointmentAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export default function Appointments() {
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-dark">{apt.patient_name || "Patient"} → {apt.doctor_name || "Doctor"}</h3>
-                    <p className="text-sm text-gray-600">📅 {new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}</p>
+                    <p className="text-sm text-gray-600">📅 {new Date(apt.appointment_date).toLocaleDateString()} at {formatTime12Hour(apt.appointment_time)}</p>
                   </div>
                   <span className={`px-4 py-2 rounded-full text-sm font-bold ${
                     apt.status === "scheduled" ? "bg-blue-100 text-blue-700" :

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { appointmentAPI, doctorAPI, timeSlotAPI } from "../../api/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function BookAppointment() {
 
   // Fetch time slots when date is selected
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate && doctorId) {
       console.log("📅 [BOOK APPOINTMENT] Date selected:", selectedDate);
       const fetchTimeSlots = async () => {
         try {
@@ -78,8 +79,9 @@ export default function BookAppointment() {
           console.log("✅ [BOOK APPOINTMENT] Time slots API response:", res.data);
           const slots = res.data.slots || res.data || [];
           console.log("📍 [BOOK APPOINTMENT] Slots array:", slots);
+          
           if (slots.length > 0) {
-            // Extract time strings from slot objects
+            // Extract time strings from slot objects (only doctor's actual time slots)
             const times = slots
               .map(s => {
                 if (typeof s === 'string') return s;
@@ -88,30 +90,21 @@ export default function BookAppointment() {
                 return null;
               })
               .filter(t => t !== null);
-            console.log("⏰ [BOOK APPOINTMENT] Extracted times:", times);
-            setTimeSlots(times.length > 0 ? times : generateDefaultSlots());
+            console.log("⏰ [BOOK APPOINTMENT] Doctor's available time slots:", times);
+            setTimeSlots(times);
           } else {
-            console.log("⚠️ [BOOK APPOINTMENT] No slots from API, using default slots");
-            setTimeSlots(generateDefaultSlots());
+            console.log("⚠️ [BOOK APPOINTMENT] No time slots available for this day");
+            setTimeSlots([]);
           }
         } catch (err) {
           console.error("❌ [BOOK APPOINTMENT] Error fetching time slots:", err);
-          console.log("📌 [BOOK APPOINTMENT] Using default slots due to error");
-          setTimeSlots(generateDefaultSlots());
+          console.log("📌 [BOOK APPOINTMENT] No slots available");
+          setTimeSlots([]);
         }
       };
       fetchTimeSlots();
     }
   }, [selectedDate, doctorId]);
-
-  // Helper function to generate default time slots
-  const generateDefaultSlots = () => {
-    const slots = [];
-    for (let hour = 9; hour <= 17; hour++) {
-      slots.push(`${String(hour).padStart(2, '0')}:00`);
-    }
-    return slots;
-  };
 
   const handleBookAppointment = async () => {
     if (submitting) {
@@ -244,7 +237,7 @@ export default function BookAppointment() {
               <div>
                 <p className="text-sm text-gray-600">Date & Time</p>
                 <p className="font-bold text-gray-800">
-                  {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {selectedTime}
+                  {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {formatTime12Hour(selectedTime)}
                 </p>
               </div>
               <div>
@@ -366,30 +359,42 @@ export default function BookAppointment() {
             {step === 2 && (
               <div>
                 <h2 className="text-xl font-bold text-gray-800 mb-4">⏰ Select Time</h2>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {timeSlots.map((time, idx) => (
-                    <button
-                      key={`${time}-${idx}`}
-                      onClick={() => {
-                        console.log("🕐 [STEP 2] Time selected:", time);
-                        setSelectedTime(time);
-                      }}
-                      className={`p-3 rounded-lg border-2 transition font-semibold text-center ${
-                        selectedTime === time
-                          ? "border-blue-600 bg-blue-50 text-blue-600"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
+                
+                {timeSlots.length === 0 ? (
+                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 mb-6 text-center">
+                    <p className="text-yellow-800 font-semibold mb-2">⚠️ No Available Time Slots</p>
+                    <p className="text-yellow-700 text-sm">
+                      The doctor has not set any available time slots for this day. 
+                      Please select a different date or contact the doctor directly.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {timeSlots.map((time, idx) => (
+                      <button
+                        key={`${time}-${idx}`}
+                        onClick={() => {
+                          console.log("🕐 [STEP 2] Time selected:", time);
+                          setSelectedTime(time);
+                        }}
+                        className={`p-3 rounded-lg border-2 transition font-semibold text-center ${
+                          selectedTime === time
+                            ? "border-blue-600 bg-blue-50 text-blue-600"
+                            : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
+                        }`}
+                      >
+                        {formatTime12Hour(time)}
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 <div className="flex gap-4">
                   <button
                     onClick={() => {
                       console.log("⬅️ [STEP 2→1] Going back to date selection");
                       setStep(1);
+                      setSelectedTime("");
                     }}
                     className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition"
                   >
@@ -449,7 +454,7 @@ export default function BookAppointment() {
                     <div className="text-sm text-gray-600 space-y-1">
                       <p><strong>Doctor:</strong> Dr. {doctor?.name}</p>
                       <p><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                      <p><strong>Time:</strong> {selectedTime}</p>
+                      <p><strong>Time:</strong> {formatTime12Hour(selectedTime)}</p>
                       <p><strong>Reason:</strong> {reason}</p>
                     </div>
                   </div>

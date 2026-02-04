@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SkeletonCard from "../../components/SkeletonCard";
 import EmptyState from "../../components/EmptyState";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -138,7 +139,7 @@ export default function Dashboard() {
                       {apt.status}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-accent font-semibold">📅 {apt.appointment_date} {apt.appointment_time ? `at ${apt.appointment_time}` : ''}</p>
+                  <p className="text-xs sm:text-sm text-accent font-semibold">📅 {apt.appointment_date} {apt.appointment_time ? `at ${formatTime12Hour(apt.appointment_time)}` : ''}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     <button 
                       onClick={() => navigate(`/patient/book/${apt.doctor_id}`)}

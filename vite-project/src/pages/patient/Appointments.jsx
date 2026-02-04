@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import SkeletonCard from "../../components/SkeletonCard";
 import EmptyState from "../../components/EmptyState";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -123,7 +124,7 @@ export default function Appointments() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">📅 Date & Time</p>
-                      <p className="text-sm sm:text-base font-semibold">{new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}</p>
+                      <p className="text-sm sm:text-base font-semibold">{new Date(apt.appointment_date).toLocaleDateString()} at {formatTime12Hour(apt.appointment_time)}</p>
                     </div>
                     <div>
                       <p className="text-xs sm:text-sm text-gray-600">📝 Reason</p>

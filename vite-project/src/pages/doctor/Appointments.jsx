@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import AddNotesModal from "../../components/Modals/AddNotesModal";
 import PrescribeModal from "../../components/Modals/PrescribeModal";
 import DiagnoseModal from "../../components/Modals/DiagnoseModal";
+import { formatTime12Hour } from "../../utils/timeFormat";
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -121,7 +122,7 @@ export default function Appointments() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-dark">{apt.patient_name || "Patient"}</h3>
-                    <p className="text-sm text-gray-600">📅 {new Date(apt.appointment_date).toLocaleDateString()} at {apt.appointment_time}</p>
+                    <p className="text-sm text-gray-600">📅 {new Date(apt.appointment_date).toLocaleDateString()} at {formatTime12Hour(apt.appointment_time)}</p>
                     <p className="text-sm text-gray-600 mt-2">📝 {apt.reason_for_visit || "General checkup"}</p>
                     {apt.symptoms && <p className="text-sm text-gray-600">🩹 {apt.symptoms}</p>}
                   </div>

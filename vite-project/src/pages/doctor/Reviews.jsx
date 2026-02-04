@@ -1,46 +1,62 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { doctorAPI } from "../../api/api";
+import { useAuth } from "../../Authcontext/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
 export default function Reviews() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalReviews: 0, avgRating: 0, ratingBreakdown: {} });
+  const [doctorId, setDoctorId] = useState(null);
 
   useEffect(() => {
-    fetchReviews();
+    fetchDoctorIdAndReviews();
   }, []);
 
-  const fetchReviews = async () => {
+  const fetchDoctorIdAndReviews = async () => {
     try {
       setLoading(true);
-      console.log("📤 [DOCTOR REVIEWS] Fetching reviews...");
-      // Simulated data
-      const mockReviews = [
-        { id: 1, patient: "John Doe", rating: 5, date: "2026-02-01", comment: "Excellent doctor! Very thorough and caring.", verified: true },
-        { id: 2, patient: "Jane Smith", rating: 5, date: "2026-01-28", comment: "Best cardiologist I have consulted. Highly knowledgeable.", verified: true },
-        { id: 3, patient: "Robert Johnson", rating: 4, date: "2026-01-25", comment: "Good experience overall. Doctor explained everything clearly.", verified: true },
-        { id: 4, patient: "Emily Davis", rating: 5, date: "2026-02-02", comment: "Outstanding service! Very professional and compassionate.", verified: true },
-        { id: 5, patient: "Michael Brown", rating: 4, date: "2026-01-20", comment: "Great doctor. Would recommend to others.", verified: true },
-      ];
+      console.log("📤 [DOCTOR REVIEWS] Fetching doctor profile...");
       
-      const avgRating = (mockReviews.reduce((sum, r) => sum + r.rating, 0) / mockReviews.length).toFixed(1);
+      // Get doctor profile to get doctor ID
+      const profileRes = await doctorAPI.getProfile();
+      console.log("✅ [DOCTOR REVIEWS] Doctor profile received:", profileRes.data);
+      const docId = profileRes.data.id;
+      setDoctorId(docId);
       
-      console.log("✅ [DOCTOR REVIEWS] Reviews loaded:", mockReviews);
-      setReviews(mockReviews);
-      setStats({
-        totalReviews: mockReviews.length,
-        avgRating: avgRating,
-        ratingBreakdown: {
-          5: mockReviews.filter(r => r.rating === 5).length,
-          4: mockReviews.filter(r => r.rating === 4).length,
-          3: mockReviews.filter(r => r.rating === 3).length,
-          2: mockReviews.filter(r => r.rating === 2).length,
-          1: mockReviews.filter(r => r.rating === 1).length,
-        }
-      });
+      // Fetch reviews for this doctor
+      console.log("📤 [DOCTOR REVIEWS] Fetching reviews for doctor ID:", docId);
+      const reviewsRes = await doctorAPI.getDoctorReviews(docId);
+      console.log("✅ [DOCTOR REVIEWS] Reviews received from backend:", reviewsRes.data);
+      
+      const reviewsData = reviewsRes.data.reviews || reviewsRes.data || [];
+      setReviews(reviewsData);
+      
+      // Calculate stats
+      if (reviewsData.length > 0) {
+        const avgRating = (reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewsData.length).toFixed(1);
+        setStats({
+          totalReviews: reviewsData.length,
+          avgRating: avgRating,
+          ratingBreakdown: {
+            5: reviewsData.filter(r => r.rating === 5).length,
+            4: reviewsData.filter(r => r.rating === 4).length,
+            3: reviewsData.filter(r => r.rating === 3).length,
+            2: reviewsData.filter(r => r.rating === 2).length,
+            1: reviewsData.filter(r => r.rating === 1).length,
+          }
+        });
+      } else {
+        setStats({
+          totalReviews: 0,
+          avgRating: 0,
+          ratingBreakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+        });
+      }
     } catch (error) {
       console.error("❌ [DOCTOR REVIEWS] Error loading reviews:", error);
     } finally {
@@ -111,23 +127,30 @@ export default function Reviews() {
           </div>
 
           {/* Reviews List */}
-          <div className="grid gap-4">
-            {reviews.map((review) => (
-              <div key={review.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <h3 className="font-semibold text-dark">{review.patient}</h3>
-                    <p className="text-sm text-gray-600">{new Date(review.date).toLocaleDateString()}</p>
+          {reviews.length === 0 ? (
+            <div className="bg-white p-12 rounded-lg shadow text-center">
+              <p className="text-gray-600 text-lg mb-2">📝 No reviews yet</p>
+              <p className="text-gray-500 text-sm">Your patients haven't left any reviews yet.</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {reviews.map((review) => (
+                <div key={review.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold text-dark">{review.patient_name || 'Patient'}</h3>
+                      <p className="text-sm text-gray-600">{new Date(review.created_at).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-yellow-500 text-lg">{'⭐'.repeat(review.rating)}</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Verified</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-yellow-500">{'⭐'.repeat(review.rating)}</span>
-                    {review.verified && <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">✓ Verified</span>}
-                  </div>
+                  <p className="text-gray-700">{review.review_text}</p>
                 </div>
-                <p className="text-gray-700">{review.comment}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <Footer />

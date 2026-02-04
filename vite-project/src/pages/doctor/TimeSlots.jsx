@@ -4,6 +4,7 @@ import { timeSlotAPI, availabilityAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { formatTimeRange } from "../../utils/timeFormat";
 
 export default function TimeSlots() {
   const navigate = useNavigate();
@@ -43,23 +44,34 @@ export default function TimeSlots() {
     e.preventDefault();
     
     if (!formData.start_time || !formData.end_time) {
-      setMessage("Please fill in all fields");
+      setMessage("❌ Please fill in all fields");
+      setTimeout(() => setMessage(""), 3000);
+      return;
+    }
+
+    // Validate that end time is after start time
+    if (formData.start_time >= formData.end_time) {
+      setMessage("❌ End time must be after start time");
+      setTimeout(() => setMessage(""), 3000);
       return;
     }
 
     try {
       await availabilityAPI.upsertTimeSlot(formData);
-      setMessage("✓ Time slot added successfully!");
+      setMessage("✓ Time slot added successfully! You can add another slot for the same day if needed.");
       setShowAddModal(false);
+      // Keep the same day selected for easy addition of multiple slots
       setFormData({
-        day_of_week: "Monday",
+        day_of_week: formData.day_of_week,
         start_time: "",
         end_time: "",
         is_available: true,
       });
       fetchTimeSlots();
+      setTimeout(() => setMessage(""), 5000);
     } catch (error) {
       setMessage("✗ Error: " + (error.response?.data?.message || error.message));
+      setTimeout(() => setMessage(""), 5000);
     }
   };
 
@@ -70,8 +82,10 @@ export default function TimeSlots() {
       });
       setMessage("✓ Slot availability updated!");
       fetchTimeSlots();
+      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       setMessage("✗ Error: " + (error.response?.data?.message || error.message));
+      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -81,8 +95,10 @@ export default function TimeSlots() {
         await availabilityAPI.deleteTimeSlot(slotId);
         setMessage("✓ Time slot deleted!");
         fetchTimeSlots();
+        setTimeout(() => setMessage(""), 3000);
       } catch (error) {
         setMessage("✗ Error: " + (error.response?.data?.message || error.message));
+        setTimeout(() => setMessage(""), 3000);
       }
     }
   };
@@ -152,21 +168,28 @@ export default function TimeSlots() {
                 
                 return (
                   <div key={day} className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-xl font-bold text-dark mb-4">{day}</h3>
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-xl font-bold text-dark">{day}</h3>
+                      {daySlots.length > 0 && (
+                        <span className="text-sm bg-accent text-white px-3 py-1 rounded-full font-semibold">
+                          {daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
                     
                     {daySlots.length === 0 ? (
                       <p className="text-gray-500 text-sm">No slots set for this day</p>
                     ) : (
                       <div className="space-y-3">
-                        {daySlots.map((slot) => (
+                        {daySlots.map((slot, index) => (
                           <div
                             key={slot.id}
                             className="flex items-center justify-between p-4 bg-background rounded-lg border-l-4 border-accent"
                           >
                             <div className="flex items-center gap-4">
                               <div>
-                                <p className="font-semibold text-dark">
-                                  {slot.start_time} - {slot.end_time}
+                                <p className="font-semibold text-dark text-lg">
+                                  🕐 {formatTimeRange(slot.start_time, slot.end_time)}
                                 </p>
                                 <p className={`text-sm ${
                                   slot.is_available ? "text-green-600" : "text-red-600"
@@ -209,7 +232,7 @@ export default function TimeSlots() {
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center mb-2">
                     <h2 className="text-2xl font-bold text-white">Add Time Slot</h2>
                     <button
                       onClick={() => setShowAddModal(false)}
@@ -218,6 +241,7 @@ export default function TimeSlots() {
                       ✕
                     </button>
                   </div>
+                  <p className="text-blue-100 text-sm">💡 You can add multiple time slots for the same day</p>
                 </div>
 
                 <form onSubmit={handleAddTimeSlot} className="p-6 space-y-4">

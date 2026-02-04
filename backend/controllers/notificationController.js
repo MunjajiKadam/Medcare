@@ -100,7 +100,82 @@ export const createNotification = async (userId, title, message, type = 'general
       'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
       [userId, title, message, type]
     );
+    console.log(`✅ Notification created for user ${userId}: ${title}`);
   } catch (error) {
     console.error('Create notification error:', error);
+    throw error;
+  }
+};
+
+// Send Notification to Patient (Doctor Only)
+export const sendNotificationToPatient = async (req, res) => {
+  try {
+    const { patient_id, title, message } = req.body;
+    const doctorUserId = req.user.id;
+
+    console.log('📤 [SEND NOTIFICATION] Doctor user ID:', doctorUserId);
+    console.log('📤 [SEND NOTIFICATION] Request body:', req.body);
+
+    // Validate required fields
+    if (!patient_id || !title || !message) {
+      return res.status(400).json({ message: 'Patient ID, title, and message are required' });
+    }
+
+    // Get doctor record
+    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorUserId]);
+    if (doctor.length === 0) {
+      return res.status(400).json({ message: 'Doctor record not found' });
+    }
+
+    // Get patient's user_id
+    const patient = await executeQuery('SELECT user_id FROM patients WHERE id = ?', [patient_id]);
+    if (patient.length === 0) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Create notification for patient
+    await executeQuery(
+      'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
+      [patient[0].user_id, title, message, 'general']
+    );
+
+    console.log('✅ [SEND NOTIFICATION] Notification sent to patient:', patient_id);
+
+    res.status(201).json({ 
+      message: 'Notification sent successfully to patient',
+      recipient: patient_id
+    });
+  } catch (error) {
+    console.error('Send notification to patient error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Get Doctor's Patients (for notification recipient selection)
+export const getDoctorPatients = async (req, res) => {
+  try {
+    const doctorUserId = req.user.id;
+
+    // Get doctor record
+    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorUserId]);
+    if (doctor.length === 0) {
+      return res.status(400).json({ message: 'Doctor record not found' });
+    }
+
+    // Get all unique patients who have had appointments with this doctor
+    const patients = await executeQuery(
+      `SELECT DISTINCT p.id, p.user_id, u.name, u.email, u.phone 
+       FROM patients p 
+       JOIN users u ON p.user_id = u.id 
+       JOIN appointments a ON p.id = a.patient_id 
+       WHERE a.doctor_id = ? 
+       ORDER BY u.name`,
+      [doctor[0].id]
+    );
+
+    res.json({ patients });
+  } catch (error) {
+    console.error('Get doctor patients error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

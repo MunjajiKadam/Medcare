@@ -73,7 +73,7 @@ export const updateAvailabilityStatus = async (req, res) => {
   }
 };
 
-// Create/Update time slot
+// Create/Update time slot - Allows multiple slots per day
 export const upsertTimeSlot = async (req, res) => {
   try {
     const { day_of_week, start_time, end_time, is_available } = req.body;
@@ -88,31 +88,34 @@ export const upsertTimeSlot = async (req, res) => {
       doctor = [{ id: result.insertId }];
     }
 
-    // Check if slot exists for this day
-    const existing = await executeQuery(
-      'SELECT id FROM doctor_time_slots WHERE doctor_id = ? AND day_of_week = ?',
-      [doctor[0].id, day_of_week]
+    // Validate time slot doesn't overlap with existing slots
+    const overlapping = await executeQuery(
+      `SELECT id FROM doctor_time_slots 
+       WHERE doctor_id = ? AND day_of_week = ? 
+       AND (
+         (start_time <= ? AND end_time > ?) OR
+         (start_time < ? AND end_time >= ?) OR
+         (start_time >= ? AND end_time <= ?)
+       )`,
+      [doctor[0].id, day_of_week, start_time, start_time, end_time, end_time, start_time, end_time]
     );
 
-    let result;
-    if (existing.length > 0) {
-      // Update existing
-      await executeQuery(
-        'UPDATE doctor_time_slots SET start_time = ?, end_time = ?, is_available = ? WHERE id = ?',
-        [start_time, end_time, is_available !== false, existing[0].id]
-      );
-      res.json({ message: 'Time slot updated successfully' });
-    } else {
-      // Create new
-      result = await executeQuery(
-        'INSERT INTO doctor_time_slots (doctor_id, day_of_week, start_time, end_time, is_available) VALUES (?, ?, ?, ?, ?)',
-        [doctor[0].id, day_of_week, start_time, end_time, is_available !== false]
-      );
-      res.status(201).json({
-        message: 'Time slot created successfully',
-        slotId: result.insertId
+    if (overlapping.length > 0) {
+      return res.status(400).json({ 
+        message: 'Time slot overlaps with an existing slot. Please choose a different time.' 
       });
     }
+
+    // Always create new time slot (allows multiple slots per day)
+    const result = await executeQuery(
+      'INSERT INTO doctor_time_slots (doctor_id, day_of_week, start_time, end_time, is_available) VALUES (?, ?, ?, ?, ?)',
+      [doctor[0].id, day_of_week, start_time, end_time, is_available !== false]
+    );
+    
+    res.status(201).json({
+      message: 'Time slot added successfully',
+      slotId: result.insertId
+    });
   } catch (error) {
     console.error('Upsert time slot error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

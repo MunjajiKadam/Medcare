@@ -39,6 +39,7 @@ import DoctorPrescriptions from "./pages/doctor/Prescriptions";
 import DoctorReviews from "./pages/doctor/Reviews";
 import DoctorTimeSlots from "./pages/doctor/TimeSlots";
 import DoctorSettings from "./pages/doctor/Settings";
+import DoctorSendNotification from "./pages/doctor/SendNotification";
 
 /* ===== Admin Pages ===== */
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -215,6 +216,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="doctor">
                 <DoctorSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/send-notification"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorSendNotification />
               </ProtectedRoute>
             }
           />

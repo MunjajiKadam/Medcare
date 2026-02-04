@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { reviewAPI, doctorAPI } from "../../api/api";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 export default function Reviews() {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ export default function Reviews() {
   const [formData, setFormData] = useState({
     doctor_id: "",
     rating: 5,
-    comment: ""
+    review_text: ""
   });
 
   useEffect(() => {
@@ -46,8 +48,9 @@ export default function Reviews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.doctor_id || !formData.comment.trim()) {
-      setMessage("Please select a doctor and add a comment");
+    if (!formData.doctor_id || !formData.review_text.trim()) {
+      setMessage("Please select a doctor and add a review");
+      setTimeout(() => setMessage(""), 3000);
       return;
     }
 
@@ -56,12 +59,14 @@ export default function Reviews() {
       await reviewAPI.createReview(formData);
       console.log("✅ [USER REVIEWS] Review submitted successfully");
       setMessage("✓ Review submitted successfully!");
-      setFormData({ doctor_id: "", rating: 5, comment: "" });
+      setFormData({ doctor_id: "", rating: 5, review_text: "" });
       setShowForm(false);
       fetchData();
+      setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("❌ [USER REVIEWS] Error submitting review:", error);
       setMessage("✗ Error: " + error.response?.data?.message);
+      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -73,18 +78,28 @@ export default function Reviews() {
         console.log("✅ [USER REVIEWS] Review deleted successfully");
         setMessage("✓ Review deleted!");
         fetchData();
+        setTimeout(() => setMessage(""), 3000);
       } catch (error) {
         console.error("❌ [USER REVIEWS] Error deleting review:", error);
         setMessage("✗ Error: " + error.response?.data?.message);
+        setTimeout(() => setMessage(""), 3000);
       }
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading reviews...</p></div>;
+  if (loading) return (
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading reviews...</p></div>
+      <Footer />
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-4xl mx-auto">
         <button
           onClick={() => navigate(-1)}
           className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
@@ -156,10 +171,10 @@ export default function Reviews() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-dark mb-2">Your Comment</label>
+                <label className="block text-sm font-semibold text-dark mb-2">Your Review</label>
                 <textarea
-                  name="comment"
-                  value={formData.comment}
+                  name="review_text"
+                  value={formData.review_text}
                   onChange={handleChange}
                   placeholder="Share your experience..."
                   rows="4"
@@ -202,7 +217,7 @@ export default function Reviews() {
                   </div>
                 </div>
 
-                <p className="text-gray-700 mb-4">{review.comment || "No comment"}</p>
+                <p className="text-gray-700 mb-4">{review.review_text || "No review text"}</p>
 
                 <button
                   onClick={() => deleteReview(review.id)}
@@ -216,5 +231,7 @@ export default function Reviews() {
         )}
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
