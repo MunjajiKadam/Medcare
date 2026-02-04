@@ -38,6 +38,7 @@ import DoctorPatients from "./pages/doctor/Patients";
 import DoctorPrescriptions from "./pages/doctor/Prescriptions";
 import DoctorReviews from "./pages/doctor/Reviews";
 import DoctorTimeSlots from "./pages/doctor/TimeSlots";
+import DoctorSettings from "./pages/doctor/Settings";
 
 /* ===== Admin Pages ===== */
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -206,6 +207,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="doctor">
                 <DoctorTimeSlots />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/settings"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorSettings />
               </ProtectedRoute>
             }
           />

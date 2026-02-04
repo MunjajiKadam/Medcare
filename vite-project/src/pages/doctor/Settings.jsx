@@ -6,7 +6,7 @@ import Footer from "../../components/Footer";
 import FormInput from "../../components/FormInput";
 import Spinner from "../../components/Spinner";
 
-export default function Settings() {
+export default function DoctorSettings() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [notification, setNotification] = useState(true);
@@ -41,17 +41,17 @@ export default function Settings() {
     if (saveLoading) return;
     try {
       setSaveLoading(true);
-      console.log("📤 [USER SETTINGS] Saving user preferences...");
+      console.log("📤 [DOCTOR SETTINGS] Saving doctor preferences...");
       const settings = {
         notification,
         newsletter,
         theme
       };
-      console.log("✅ [USER SETTINGS] Settings saved:", settings);
+      console.log("✅ [DOCTOR SETTINGS] Settings saved:", settings);
       setMessage("✓ Settings saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      console.error("❌ [USER SETTINGS] Error saving settings:", error);
+      console.error("❌ [DOCTOR SETTINGS] Error saving settings:", error);
       setMessage("✗ Error saving settings");
       setTimeout(() => setMessage(""), 3000);
     } finally {
@@ -82,21 +82,21 @@ export default function Settings() {
 
     try {
       setSaveLoading(true);
-      console.log("📤 [USER SETTINGS] Changing password...");
+      console.log("📤 [DOCTOR SETTINGS] Changing password...");
       // TODO: Call backend API to change password
       // await userAPI.changePassword(passwordData);
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log("✅ [USER SETTINGS] Password changed successfully");
+      console.log("✅ [DOCTOR SETTINGS] Password changed successfully");
       setMessage("✓ Password changed successfully!");
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setPasswordErrors({});
       setShowPasswordForm(false);
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
-      console.error("❌ [USER SETTINGS] Error changing password:", error);
+      console.error("❌ [DOCTOR SETTINGS] Error changing password:", error);
       setMessage("✗ Error changing password");
       setTimeout(() => setMessage(""), 3000);
     } finally {
@@ -106,9 +106,9 @@ export default function Settings() {
 
   const handleLogout = () => {
     if (confirm("Are you sure you want to logout?")) {
-      console.log("📤 [USER SETTINGS] User logging out...");
+      console.log("📤 [DOCTOR SETTINGS] Doctor logging out...");
       logout();
-      console.log("✅ [USER SETTINGS] Logged out successfully");
+      console.log("✅ [DOCTOR SETTINGS] Logged out successfully");
       navigate("/login");
     }
   };
@@ -187,7 +187,7 @@ export default function Settings() {
               <input
                 id="role"
                 type="text"
-                value={user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || "Patient"}
+                value={user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || "Doctor"}
                 disabled
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
                 aria-readonly="true"
@@ -196,7 +196,7 @@ export default function Settings() {
 
             <button 
               className="btn-outline w-full sm:w-auto"
-              onClick={() => setMessage("✓ Profile editing coming soon!")}
+              onClick={() => navigate("/doctor/profile")}
               aria-label="Edit profile information"
             >
               ✏️ Edit Profile
@@ -306,142 +306,177 @@ export default function Settings() {
               </form>
             )}
 
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-dark flex items-center gap-2">
-                  <span aria-hidden="true">🛡️</span> Two-Factor Authentication
-                </p>
-                <p className="text-sm text-gray-600 mt-1">Add an extra layer of security to your account</p>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <p className="font-semibold text-dark">Two-Factor Authentication</p>
+                <p className="text-sm text-gray-600">Add an extra layer of security</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={twoFactorEnabled}
-                  onChange={(e) => {
-                    setTwoFactorEnabled(e.target.checked);
-                    setMessage(e.target.checked ? "✓ 2FA feature coming soon!" : "✓ 2FA disabled");
-                    setTimeout(() => setMessage(""), 2000);
-                  }}
-                  className="sr-only peer"
-                  aria-label="Enable two-factor authentication"
-                />
-                <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-accent transition-colors"></div>
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-              </label>
+              <button
+                onClick={() => {
+                  setTwoFactorEnabled(!twoFactorEnabled);
+                  setMessage(
+                    twoFactorEnabled 
+                      ? "✗ Two-factor authentication disabled" 
+                      : "✓ Two-factor authentication enabled"
+                  );
+                  setTimeout(() => setMessage(""), 3000);
+                }}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  twoFactorEnabled
+                    ? "bg-green-600 text-white hover:bg-green-700"
+                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                }`}
+                aria-label={`Two-factor authentication is ${twoFactorEnabled ? "enabled" : "disabled"}`}
+              >
+                {twoFactorEnabled ? "Enabled" : "Disabled"}
+              </button>
             </div>
           </div>
         </section>
 
-        {/* Notifications */}
+        {/* Notification Preferences */}
         <section className="card mb-6" aria-labelledby="notifications-heading">
           <h2 id="notifications-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
-            <span aria-hidden="true">🔔</span> Notifications
+            <span aria-hidden="true">🔔</span> Notification Preferences
           </h2>
           
           <div className="space-y-4">
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-dark">Appointment Reminders</p>
-                <p className="text-sm text-gray-600 mt-1">Get reminded about your upcoming appointments</p>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <p className="font-semibold text-dark">Appointment Notifications</p>
+                <p className="text-sm text-gray-600">Receive alerts about appointments</p>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={notification}
-                  onChange={(e) => setNotification(e.target.checked)}
-                  className="sr-only peer"
-                  aria-label="Enable appointment reminder notifications"
-                />
-                <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-accent transition-colors"></div>
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-              </label>
-            </div>
-
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
-              <div className="flex-1">
-                <p className="font-semibold text-dark">Newsletter</p>
-                <p className="text-sm text-gray-600 mt-1">Subscribe to health tips and updates</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={newsletter}
-                  onChange={(e) => setNewsletter(e.target.checked)}
-                  className="sr-only peer"
-                  aria-label="Subscribe to newsletter"
-                />
-                <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-accent transition-colors"></div>
-                <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
-              </label>
-            </div>
-          </div>
-        </section>
-
-        {/* Preferences */}
-        <section className="card mb-6" aria-labelledby="preferences-heading">
-          <h2 id="preferences-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
-            <span aria-hidden="true">🎨</span> Preferences
-          </h2>
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 mb-2">
-                Theme Preference
-              </label>
-              <select
-                id="theme"
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors"
-                aria-label="Select theme preference"
+              <button
+                onClick={() => setNotification(!notification)}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  notification
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                }`}
+                aria-label={`Notifications are ${notification ? "enabled" : "disabled"}`}
               >
-                <option value="light">☀️ Light Theme</option>
-                <option value="dark">🌙 Dark Theme</option>
-                <option value="auto">🔄 Auto (System)</option>
-              </select>
-              <p className="text-xs text-gray-500 mt-2">Choose how MedCare appears to you</p>
+                {notification ? "On" : "Off"}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <p className="font-semibold text-dark">Newsletter</p>
+                <p className="text-sm text-gray-600">Get updates about MedCare</p>
+              </div>
+              <button
+                onClick={() => setNewsletter(!newsletter)}
+                className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                  newsletter
+                    ? "bg-blue-600 text-white hover:bg-blue-700"
+                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                }`}
+                aria-label={`Newsletter is ${newsletter ? "enabled" : "disabled"}`}
+              >
+                {newsletter ? "Subscribed" : "Unsubscribed"}
+              </button>
             </div>
           </div>
-        </section>
 
-        {/* Save Button */}
-        <section className="card mb-6">
           <button
             onClick={handleSaveSettings}
             disabled={saveLoading}
-            className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
-            aria-label="Save all settings"
+            className="btn-primary w-full sm:w-auto mt-4 disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saveLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <Spinner size="sm" /> Saving...
               </span>
             ) : (
-              "💾 Save Settings"
+              "💾 Save Preferences"
             )}
           </button>
         </section>
 
+        {/* Appearance */}
+        <section className="card mb-6" aria-labelledby="appearance-heading">
+          <h2 id="appearance-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+            <span aria-hidden="true">🎨</span> Appearance
+          </h2>
+          
+          <div className="space-y-4">
+            <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 mb-2">
+              Theme
+            </label>
+            <select
+              id="theme"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark (Coming Soon)</option>
+              <option value="auto">Auto (Coming Soon)</option>
+            </select>
+          </div>
+        </section>
+
+        {/* Professional Settings (Doctor-specific) */}
+        <section className="card mb-6" aria-labelledby="professional-heading">
+          <h2 id="professional-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+            <span aria-hidden="true">🩺</span> Professional Settings
+          </h2>
+          
+          <div className="space-y-4">
+            <button 
+              className="btn-outline w-full sm:w-auto"
+              onClick={() => navigate("/doctor/time-slots")}
+              aria-label="Manage availability schedule"
+            >
+              📅 Manage Availability
+            </button>
+            
+            <button 
+              className="btn-outline w-full sm:w-auto ml-0 sm:ml-3"
+              onClick={() => navigate("/doctor/profile")}
+              aria-label="Update professional information"
+            >
+              📋 Update Professional Info
+            </button>
+          </div>
+        </section>
+
         {/* Danger Zone */}
-        <section 
-          className="bg-red-50 border-2 border-red-200 p-6 sm:p-8 rounded-xl"
-          aria-labelledby="danger-zone-heading"
-        >
-          <h2 id="danger-zone-heading" className="text-2xl font-bold text-red-600 mb-4 flex items-center gap-2">
+        <section className="card border-2 border-red-200 bg-red-50" aria-labelledby="danger-heading">
+          <h2 id="danger-heading" className="text-2xl font-bold text-red-700 mb-6 flex items-center gap-2">
             <span aria-hidden="true">⚠️</span> Danger Zone
           </h2>
           
-          <button
-            onClick={handleLogout}
-            className="w-full sm:w-auto px-6 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 active:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-            aria-label="Logout from your account"
-          >
-            🚪 Logout
-          </button>
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-700 mb-3">
+                Once you logout, you will need to sign in again to access your account.
+              </p>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors w-full sm:w-auto"
+              >
+                🚪 Logout
+              </button>
+            </div>
 
-          <p className="text-sm text-red-600 mt-4">
-            This will log you out of your current session. You can log in again anytime.
-          </p>
+            <div className="pt-4 border-t-2 border-red-200">
+              <p className="text-gray-700 mb-3">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              <button
+                onClick={() => {
+                  if (confirm("Are you absolutely sure? This action cannot be undone!")) {
+                    setMessage("✗ Account deletion is not available in demo mode");
+                    setTimeout(() => setMessage(""), 3000);
+                  }
+                }}
+                className="bg-red-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-800 transition-colors w-full sm:w-auto"
+              >
+                🗑️ Delete Account
+              </button>
+            </div>
+          </div>
         </section>
         </div>
       </div>

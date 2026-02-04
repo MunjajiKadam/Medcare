@@ -101,7 +101,7 @@ export default function Navbar() {
                       Profile
                     </Link>
                     <Link
-                      to={user.role === "patient" ? "/patient/settings" : "#"}
+                      to={user.role === "patient" ? "/patient/settings" : user.role === "doctor" ? "/doctor/settings" : "#"}
                       className="block px-4 py-2 text-dark hover:bg-gray-100"
                       onClick={() => setDropdownOpen(false)}
                     >
@@ -189,7 +189,7 @@ export default function Navbar() {
             👤 {user.name} - Profile
           </Link>
           <Link
-            to={user.role === "patient" ? "/patient/settings" : "#"}
+            to={user.role === "patient" ? "/patient/settings" : user.role === "doctor" ? "/doctor/settings" : "#"}
             onClick={() => setMobileOpen(false)}
             className="block px-4 py-2 text-dark hover:bg-gray-100 rounded"
           >
