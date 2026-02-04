@@ -126,6 +126,42 @@ export const updatePersonalInfo = async (req, res) => {
   }
 };
 
+// Update user settings (theme, notifications, etc.)
+export const updateSettings = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { theme } = req.body;
+
+    console.log("📤 [SETTINGS] Updating settings for user_id:", id);
+    console.log("📊 [SETTINGS] Settings data:", { theme });
+
+    // Validate theme value
+    const validThemes = ['light', 'dark', 'auto'];
+    if (theme && !validThemes.includes(theme)) {
+      return res.status(400).json({ message: 'Invalid theme value. Must be light, dark, or auto' });
+    }
+
+    const result = await executeQuery(
+      'UPDATE users SET theme_preference = ? WHERE id = ?',
+      [theme, id]
+    );
+
+    if (result.affectedRows === 0) {
+      console.error("❌ [SETTINGS] User not found for user_id:", id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log("✅ [SETTINGS] Settings updated successfully for user_id:", id);
+    res.json({ 
+      message: 'Settings updated successfully',
+      theme 
+    });
+  } catch (error) {
+    console.error('❌ [SETTINGS] Update settings error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 // Delete patient
 export const deletePatient = async (req, res) => {
   try {

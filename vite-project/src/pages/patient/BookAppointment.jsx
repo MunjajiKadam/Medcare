@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { appointmentAPI, doctorAPI, timeSlotAPI } from "../../api/api";
+import { useTheme } from "../../context/ThemeContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { formatTime12Hour } from "../../utils/timeFormat";
@@ -8,6 +9,7 @@ import { formatTime12Hour } from "../../utils/timeFormat";
 export default function BookAppointment() {
   const navigate = useNavigate();
   const { doctorId } = useParams();
+  const { theme } = useTheme();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -160,10 +162,10 @@ export default function BookAppointment() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600 mt-4">Loading doctor details...</p>
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 dark:border-purple-400"></div>
+            <p className="text-gray-700 dark:text-gray-300 mt-4 text-lg font-medium">Loading doctor details...</p>
           </div>
         </div>
         <Footer />
@@ -175,14 +177,14 @@ export default function BookAppointment() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-          <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-            <div className="text-5xl mb-4">❌</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Doctor</h2>
-            <p className="text-red-600 mb-6">{error}</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl dark:shadow-gray-900/70 w-full max-w-md text-center border border-gray-200 dark:border-gray-700">
+            <div className="text-6xl mb-4">❌</div>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Error Loading Doctor</h2>
+            <p className="text-red-600 dark:text-red-400 mb-6">{error}</p>
             <button 
               onClick={() => navigate(-1)}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition-all duration-200"
             >
               ← Go Back
             </button>
@@ -197,14 +199,14 @@ export default function BookAppointment() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-          <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-            <div className="text-5xl mb-4">⚠️</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Doctor Not Found</h2>
-            <p className="text-gray-600 mb-6">We couldn't find the doctor you're looking for.</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl dark:shadow-gray-900/70 w-full max-w-md text-center border border-gray-200 dark:border-gray-700">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">Doctor Not Found</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">We couldn't find the doctor you're looking for.</p>
             <button 
               onClick={() => navigate(-1)}
-              className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition-all duration-200"
             >
               ← Go Back
             </button>
@@ -219,49 +221,49 @@ export default function BookAppointment() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-          <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Appointment Booked!</h2>
-            <p className="text-gray-600 mb-6">Your appointment has been confirmed successfully</p>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl dark:shadow-gray-900/70 w-full max-w-md text-center border border-gray-200 dark:border-gray-700">
+            <div className="text-6xl mb-4 animate-bounce">✅</div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">Appointment Booked!</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Your appointment has been confirmed successfully</p>
             
-            <div className="bg-gray-50 p-6 rounded-lg mb-6 text-left space-y-3">
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-700 p-6 rounded-xl mb-6 text-left space-y-3 border border-purple-200 dark:border-gray-600">
               <div>
-                <p className="text-sm text-gray-600">Doctor</p>
-                <p className="font-bold text-gray-800">Dr. {doctor?.name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">👨‍⚕️ Doctor</p>
+                <p className="font-bold text-gray-800 dark:text-white">Dr. {doctor?.name}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Specialization</p>
-                <p className="font-bold text-gray-800">{doctor?.specialization}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">🎯 Specialization</p>
+                <p className="font-bold text-gray-800 dark:text-white">{doctor?.specialization}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Date & Time</p>
-                <p className="font-bold text-gray-800">
+                <p className="text-sm text-gray-600 dark:text-gray-400">📅 Date & Time</p>
+                <p className="font-bold text-gray-800 dark:text-white">
                   {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {formatTime12Hour(selectedTime)}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Reason</p>
-                <p className="font-bold text-gray-800">{reason}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">📝 Reason</p>
+                <p className="font-bold text-gray-800 dark:text-white">{reason}</p>
               </div>
             </div>
 
             <div className="space-y-3">
               <button 
                 onClick={() => navigate(`/patient/doctor/${doctorId}`)}
-                className="w-full py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition"
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition-all duration-200"
               >
                 👨‍⚕️ View Doctor Profile
               </button>
               <button 
                 onClick={() => navigate("/patient/appointments")}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition"
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-lg hover:scale-105 transition-all duration-200"
               >
                 📅 View My Appointments
               </button>
               <button 
                 onClick={() => navigate("/patient/dashboard")}
-                className="w-full py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition"
+                className="w-full py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
               >
                 🏠 Back to Dashboard
               </button>
@@ -276,25 +278,25 @@ export default function BookAppointment() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 px-4 py-12">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 py-12">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white p-8 rounded-xl shadow-lg">
+          <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl dark:shadow-gray-900/70 border border-gray-200 dark:border-gray-700">
             {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
-              className="mb-4 px-3 py-1 text-sm bg-gray-100 border border-gray-300 text-gray-700 rounded hover:bg-gray-200 transition"
+              className="mb-6 px-4 py-2 text-sm bg-white dark:bg-gray-700 border-2 border-purple-600 dark:border-purple-500 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 dark:hover:text-white transition font-semibold shadow-md dark:shadow-gray-900/50"
             >
               ← Back
             </button>
 
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">Book an Appointment</h1>
-              <p className="text-gray-600">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-3">📅 Book an Appointment</h1>
+              <p className="text-gray-700 dark:text-gray-300 font-medium">
                 Dr. {doctor?.name} - {doctor?.specialization}
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                Consultation Fee: ${doctor?.consultation_fee}
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                💰 Consultation Fee: ${doctor?.consultation_fee}
               </p>
               
               {/* Progress */}
@@ -302,8 +304,8 @@ export default function BookAppointment() {
                 {[1, 2, 3].map(s => (
                   <div
                     key={s}
-                    className={`flex-1 h-2 rounded-full transition ${
-                      s <= step ? "bg-blue-600" : "bg-gray-300"
+                    className={`flex-1 h-3 rounded-full transition-all duration-300 ${
+                      s <= step ? "bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 shadow-md" : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   ></div>
                 ))}
@@ -311,7 +313,7 @@ export default function BookAppointment() {
             </div>
 
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              <div className="bg-red-100 dark:bg-red-900/30 border-2 border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
                 {error}
               </div>
             )}
@@ -319,8 +321,8 @@ export default function BookAppointment() {
             {/* Step 1: Select Date */}
             {step === 1 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">📅 Select Date</h2>
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">📅 Select Date</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   {nextDates.map(date => (
                     <button
                       key={date.value}
@@ -329,13 +331,13 @@ export default function BookAppointment() {
                         setSelectedDate(date.value);
                         setSelectedTime("");
                       }}
-                      className={`p-4 rounded-lg border-2 transition font-semibold ${
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 font-semibold ${
                         selectedDate === date.value
-                          ? "border-blue-600 bg-blue-50 text-blue-600"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
+                          ? "border-purple-600 dark:border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 shadow-lg scale-105"
+                          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md"
                       }`}
                     >
-                      <div className="text-sm">{date.label}</div>
+                      <div className="text-base">{date.label}</div>
                     </button>
                   ))}
                 </div>
@@ -347,9 +349,9 @@ export default function BookAppointment() {
                       setStep(2);
                     }}
                     disabled={!selectedDate}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 transition"
+                    className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-xl hover:scale-105 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-200"
                   >
-                    Next: Select Time
+                    Next: Select Time →
                   </button>
                 </div>
               </div>
@@ -358,18 +360,18 @@ export default function BookAppointment() {
             {/* Step 2: Select Time */}
             {step === 2 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">⏰ Select Time</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">⏰ Select Time</h2>
                 
                 {timeSlots.length === 0 ? (
-                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 mb-6 text-center">
-                    <p className="text-yellow-800 font-semibold mb-2">⚠️ No Available Time Slots</p>
-                    <p className="text-yellow-700 text-sm">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-600 rounded-xl p-6 mb-6 text-center">
+                    <p className="text-yellow-800 dark:text-yellow-400 font-semibold mb-2 text-lg">⚠️ No Available Time Slots</p>
+                    <p className="text-yellow-700 dark:text-yellow-500 text-sm">
                       The doctor has not set any available time slots for this day. 
                       Please select a different date or contact the doctor directly.
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                     {timeSlots.map((time, idx) => (
                       <button
                         key={`${time}-${idx}`}
@@ -377,10 +379,10 @@ export default function BookAppointment() {
                           console.log("🕐 [STEP 2] Time selected:", time);
                           setSelectedTime(time);
                         }}
-                        className={`p-3 rounded-lg border-2 transition font-semibold text-center ${
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 font-semibold text-center ${
                           selectedTime === time
-                            ? "border-blue-600 bg-blue-50 text-blue-600"
-                            : "border-gray-200 bg-white text-gray-700 hover:border-blue-300"
+                            ? "border-purple-600 dark:border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 shadow-lg scale-105"
+                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md"
                         }`}
                       >
                         {formatTime12Hour(time)}
@@ -396,9 +398,9 @@ export default function BookAppointment() {
                       setStep(1);
                       setSelectedTime("");
                     }}
-                    className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition"
+                    className="flex-1 py-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
                   >
-                    Back
+                    ← Back
                   </button>
                   <button
                     onClick={() => {
@@ -406,9 +408,9 @@ export default function BookAppointment() {
                       setStep(3);
                     }}
                     disabled={!selectedTime}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 disabled:bg-gray-300 transition"
+                    className="flex-1 py-4 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-xl hover:scale-105 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-200"
                   >
-                    Next: Details
+                    Next: Details →
                   </button>
                 </div>
               </div>
@@ -417,17 +419,17 @@ export default function BookAppointment() {
             {/* Step 3: Enter Details */}
             {step === 3 && (
               <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">📋 Appointment Details</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">📋 Appointment Details</h2>
                 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-5 mb-6">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Reason for Visit *
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      🎯 Reason for Visit *
                     </label>
                     <select
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-600"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition"
                     >
                       <option value="">Select reason</option>
                       {reasons.map(r => (
@@ -437,25 +439,25 @@ export default function BookAppointment() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Symptoms/Description
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      💬 Symptoms/Description
                     </label>
                     <textarea
                       value={symptoms}
                       onChange={(e) => setSymptoms(e.target.value)}
                       placeholder="Describe your symptoms or reason for visit (optional)"
                       rows="4"
-                      className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-blue-600"
+                      className="w-full border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition placeholder-gray-400 dark:placeholder-gray-500"
                     />
                   </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-gray-800 mb-2">Appointment Summary</h3>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <p><strong>Doctor:</strong> Dr. {doctor?.name}</p>
-                      <p><strong>Date:</strong> {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                      <p><strong>Time:</strong> {formatTime12Hour(selectedTime)}</p>
-                      <p><strong>Reason:</strong> {reason}</p>
+                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-700 p-6 rounded-xl border-2 border-purple-200 dark:border-gray-600">
+                    <h3 className="font-bold text-gray-800 dark:text-white mb-4 text-lg">📝 Appointment Summary</h3>
+                    <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                      <p><strong className="text-gray-800 dark:text-white">👨‍⚕️ Doctor:</strong> Dr. {doctor?.name}</p>
+                      <p><strong className="text-gray-800 dark:text-white">📅 Date:</strong> {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                      <p><strong className="text-gray-800 dark:text-white">⏰ Time:</strong> {formatTime12Hour(selectedTime)}</p>
+                      <p><strong className="text-gray-800 dark:text-white">🎯 Reason:</strong> {reason || "Not selected"}</p>
                     </div>
                   </div>
                 </div>
@@ -463,16 +465,16 @@ export default function BookAppointment() {
                 <div className="flex gap-4">
                   <button
                     onClick={() => setStep(2)}
-                    className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition"
+                    className="flex-1 py-4 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200"
                   >
-                    Back
+                    ← Back
                   </button>
                   <button
                     onClick={handleBookAppointment}
                     disabled={!reason || submitting}
-                    className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 disabled:bg-gray-300 transition"
+                    className="flex-1 py-4 bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 text-white rounded-lg font-bold hover:shadow-xl hover:scale-105 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:scale-100 transition-all duration-200"
                   >
-                    {submitting ? "Booking..." : "Confirm & Book"}
+                    {submitting ? "⏳ Booking..." : "✓ Confirm & Book"}
                   </button>
                 </div>
               </div>

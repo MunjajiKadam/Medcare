@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { doctorAPI, appointmentAPI, patientAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard({ title }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { theme } = useTheme();
   const [counts, setCounts] = useState({ patients: 0, doctors: 0, appointments: 0, revenue: 0 });
   const [recentAppointments, setRecentAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,12 +63,12 @@ export default function AdminDashboard({ title }) {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background dark:bg-gray-900 p-6 transition-colors duration-200">
       {/* Header with Logout */}
       <div className="flex justify-between items-center mb-4">
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
         >
           ← Back
         </button>
@@ -81,20 +83,20 @@ export default function AdminDashboard({ title }) {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-dark mb-2">Admin Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+        <h1 className="text-4xl font-bold text-dark dark:text-white mb-2">Admin Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-300">Welcome back! Here's what's happening today.</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid md:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+          <div key={idx} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-lg transition-all duration-200">
             <div className="flex items-start justify-between mb-4">
               <div className="text-3xl">{stat.icon}</div>
-              <span className="text-green-600 text-sm font-semibold">{stat.change}</span>
+              <span className="text-green-600 dark:text-green-400 text-sm font-semibold">{stat.change}</span>
             </div>
-            <h3 className="text-gray-600 text-sm mb-1">{stat.label}</h3>
-            <p className="text-3xl font-bold text-dark">{stat.value}</p>
+            <h3 className="text-gray-600 dark:text-gray-400 text-sm mb-1">{stat.label}</h3>
+            <p className="text-3xl font-bold text-dark dark:text-white">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -102,22 +104,22 @@ export default function AdminDashboard({ title }) {
       {/* Recent Activity */}
       <div className="grid md:grid-cols-2 gap-6">
         {/* Recent Appointments */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-2xl font-bold text-dark mb-4">Recent Appointments</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow transition-colors duration-200">
+          <h2 className="text-2xl font-bold text-dark dark:text-white mb-4">Recent Appointments</h2>
           {loading ? (
-            <p>Loading...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
           ) : recentAppointments.length > 0 ? (
             <div className="space-y-4">
               {recentAppointments.map((apt) => (
-                <div key={apt.id} className="flex items-center justify-between p-4 bg-background rounded-lg">
+                <div key={apt.id} className="flex items-center justify-between p-4 bg-background dark:bg-gray-700 rounded-lg">
                   <div>
-                    <p className="font-semibold text-dark">{apt.patient_name || 'Patient'}</p>
-                    <p className="text-sm text-gray-600">{apt.doctor_name || 'Doctor'}</p>
+                    <p className="font-semibold text-dark dark:text-white">{apt.patient_name || 'Patient'}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{apt.doctor_name || 'Doctor'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600">{apt.appointment_date}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{apt.appointment_date}</p>
                     <span className={`text-xs font-bold px-2 py-1 rounded ${
-                      apt.status === "completed" || apt.status === "Completed" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                      apt.status === "completed" || apt.status === "Completed" ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" : "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
                     }`}>
                       {apt.status}
                     </span>
@@ -126,13 +128,13 @@ export default function AdminDashboard({ title }) {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">No recent appointments</p>
+            <p className="text-gray-600 dark:text-gray-400">No recent appointments</p>
           )}
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow">
-          <h2 className="text-2xl font-bold text-dark mb-4">Quick Actions</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow transition-colors duration-200">
+          <h2 className="text-2xl font-bold text-dark dark:text-white mb-4">Quick Actions</h2>
           <div className="space-y-3">
             <button onClick={() => navigate('/admin/doctors')} className="w-full p-3 bg-accent text-white rounded-lg hover:opacity-90 transition font-semibold">
               👨‍⚕️ Manage Doctors
@@ -143,17 +145,20 @@ export default function AdminDashboard({ title }) {
             <button onClick={() => navigate('/admin/patients')} className="w-full p-3 bg-primary text-dark rounded-lg hover:opacity-90 transition font-semibold">
               👥 Manage Patients
             </button>
-            <button onClick={() => navigate('/admin/health-records')} className="w-full p-3 border-2 border-secondary text-secondary rounded-lg hover:bg-background transition font-semibold">
+            <button onClick={() => navigate('/admin/health-records')} className="w-full p-3 border-2 border-secondary dark:border-secondary text-secondary dark:text-secondary rounded-lg hover:bg-background dark:hover:bg-gray-700 transition font-semibold">
               📋 Health Records
             </button>
-            <button onClick={() => navigate('/admin/prescriptions')} className="w-full p-3 border-2 border-accent text-accent rounded-lg hover:bg-background transition font-semibold">
+            <button onClick={() => navigate('/admin/prescriptions')} className="w-full p-3 border-2 border-accent text-accent rounded-lg hover:bg-background dark:hover:bg-gray-700 transition font-semibold">
               💊 Prescriptions
             </button>
-            <button onClick={() => navigate('/admin/reviews')} className="w-full p-3 border-2 border-primary text-primary rounded-lg hover:bg-background transition font-semibold">
+            <button onClick={() => navigate('/admin/reviews')} className="w-full p-3 border-2 border-primary dark:border-primary text-primary dark:text-primary rounded-lg hover:bg-background dark:hover:bg-gray-700 transition font-semibold">
               ⭐ Reviews
             </button>
-            <button onClick={() => navigate('/admin/time-slots')} className="w-full p-3 border-2 border-gray-400 text-gray-600 rounded-lg hover:bg-background transition font-semibold">
+            <button onClick={() => navigate('/admin/time-slots')} className="w-full p-3 border-2 border-gray-400 dark:border-gray-500 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-background dark:hover:bg-gray-700 transition font-semibold">
               ⏰ Time Slots
+            </button>
+            <button onClick={() => navigate('/admin/settings')} className="w-full p-3 bg-gradient-to-r from-purple-600 to-accent text-white rounded-lg hover:opacity-90 transition font-semibold">
+              ⚙️ Settings
             </button>
           </div>
         </div>

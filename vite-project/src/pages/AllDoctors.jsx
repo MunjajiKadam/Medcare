@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { doctorAPI } from "../api/api";
+import { useTheme } from "../context/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function AllDoctors() {
   const navigate = useNavigate();
+  const { isDark } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All");
   const [selectedRating, setSelectedRating] = useState("all");
@@ -14,7 +16,31 @@ export default function AllDoctors() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
-  const specialties = ["All", ...Array.from(new Set(doctors.map(d => d.specialization).filter(Boolean)))];
+  const specialties = [
+    "All",
+    "Cardiology",
+    "Dermatology",
+    "Endocrinology",
+    "Gastroenterology",
+    "General Practice",
+    "Hematology",
+    "Infectious Disease",
+    "Internal Medicine",
+    "Nephrology",
+    "Neurology",
+    "Obstetrics & Gynecology",
+    "Oncology",
+    "Ophthalmology",
+    "Orthopedics",
+    "Otolaryngology (ENT)",
+    "Pediatrics",
+    "Psychiatry",
+    "Pulmonology",
+    "Radiology",
+    "Rheumatology",
+    "Surgery",
+    "Urology"
+  ];
 
   useEffect(() => {
     fetchDoctors();
@@ -53,8 +79,8 @@ export default function AllDoctors() {
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-gray-600">Loading doctors...</p>
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-background'}`}>
+        <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Loading doctors...</p>
       </div>
       <Footer />
     </>
@@ -64,13 +90,13 @@ export default function AllDoctors() {
     <>
       <Navbar />
       
-      <div className="min-h-screen bg-background px-4 py-12">
+      <div className={`min-h-screen px-4 py-12 ${isDark ? 'bg-gray-900' : 'bg-background'}`}>
         {/* Header Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-dark mb-4">
+          <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${isDark ? 'text-white' : 'text-dark'}`}>
             Find Our <span className="text-accent">Expert Doctors</span>
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto mb-8">
+          <p className={`text-lg max-w-2xl mx-auto mb-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Browse through our network of verified healthcare professionals and book your consultation today
           </p>
         </div>
@@ -90,7 +116,7 @@ export default function AllDoctors() {
               placeholder="🔍 Search doctors by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-6 py-4 border-2 border-accent rounded-lg focus:outline-none bg-white text-lg"
+              className={`w-full px-6 py-4 border-2 border-accent rounded-lg focus:outline-none text-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}
             />
           </div>
 
@@ -98,11 +124,11 @@ export default function AllDoctors() {
           <div className="grid md:grid-cols-4 gap-4">
             {/* Specialty Filter */}
             <div>
-              <label className="block text-sm font-semibold text-dark mb-2">Specialty</label>
+              <label className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-200' : 'text-dark'}`}>Specialty</label>
               <select
                 value={selectedSpecialty}
                 onChange={(e) => setSelectedSpecialty(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                className={`w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent ${isDark ? 'bg-gray-800 text-white border-gray-600' : ''}`}
               >
                 {specialties.map(specialty => (
                   <option key={specialty} value={specialty}>{specialty}</option>
@@ -112,11 +138,11 @@ export default function AllDoctors() {
 
             {/* Rating Filter */}
             <div>
-              <label className="block text-sm font-semibold text-dark mb-2">Minimum Rating</label>
+              <label className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-200' : 'text-dark'}`}>Minimum Rating</label>
               <select
                 value={selectedRating}
                 onChange={(e) => setSelectedRating(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                className={`w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent ${isDark ? 'bg-gray-800 text-white border-gray-600' : ''}`}
               >
                 <option value="all">All Ratings</option>
                 <option value="3">3+ ⭐</option>
@@ -127,11 +153,11 @@ export default function AllDoctors() {
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-semibold text-dark mb-2">Sort By</label>
+              <label className={`block text-sm font-semibold mb-2 ${isDark ? 'text-gray-200' : 'text-dark'}`}>Sort By</label>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                className={`w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent ${isDark ? 'bg-gray-800 text-white border-gray-600' : ''}`}
               >
                 <option value="name">Name (A-Z)</option>
                 <option value="rating">Rating (High to Low)</option>
@@ -159,7 +185,7 @@ export default function AllDoctors() {
 
         {/* Results Summary */}
         <div className="max-w-7xl mx-auto mb-6">
-          <p className="text-gray-600 text-sm">
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Showing <span className="font-bold">{filteredDoctors.length}</span> of <span className="font-bold">{doctors.length}</span> doctors
           </p>
         </div>
@@ -171,7 +197,7 @@ export default function AllDoctors() {
               {filteredDoctors.map((doctor) => (
                 <div
                   key={doctor.id}
-                  className="bg-white rounded-xl shadow hover:shadow-2xl transition overflow-hidden"
+                  className={`rounded-xl shadow hover:shadow-2xl transition overflow-hidden ${isDark ? 'bg-gray-800' : 'bg-white'}`}
                 >
                   {/* Doctor Header */}
                   <div className="bg-secondary p-6 text-white text-center">
@@ -183,37 +209,37 @@ export default function AllDoctors() {
                   {/* Doctor Details */}
                   <div className="p-6 space-y-4">
                     {/* Rating */}
-                    <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                      <span className="text-sm text-gray-600">Rating</span>
+                    <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Rating</span>
                       <div className="flex items-center gap-1">
                         <span className="text-xl font-bold text-accent">{doctor.rating || 0}</span>
                         <span className="text-yellow-400">★</span>
-                        <span className="text-sm text-gray-500">({doctor.total_reviews || 0})</span>
+                        <span className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>({doctor.total_reviews || 0})</span>
                       </div>
                     </div>
 
                     {/* Experience */}
-                    <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                      <span className="text-sm text-gray-600">Experience</span>
-                      <span className="text-sm font-semibold text-dark">{doctor.experience_years || 0} years</span>
+                    <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Experience</span>
+                      <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-dark'}`}>{doctor.experience_years || 0} years</span>
                     </div>
 
                     {/* Fee */}
-                    <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                      <span className="text-sm text-gray-600">Consultation Fee</span>
+                    <div className={`flex items-center justify-between pb-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Consultation Fee</span>
                       <span className="text-lg font-bold text-primary">${doctor.consultation_fee || 0}</span>
                     </div>
 
                     {/* Bio */}
                     {doctor.bio && (
-                      <div className="py-4 border-b border-gray-200">
-                        <p className="text-sm text-gray-600 line-clamp-2">{doctor.bio}</p>
+                      <div className={`py-4 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <p className={`text-sm line-clamp-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{doctor.bio}</p>
                       </div>
                     )}
 
                     {/* Availability */}
-                    <div className="text-sm text-gray-600">
-                      <span className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full font-semibold">
+                    <div className="text-sm">
+                      <span className={`inline-block px-3 py-1 rounded-full font-semibold ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>
                         ✓ Available Today
                       </span>
                     </div>
@@ -226,7 +252,7 @@ export default function AllDoctors() {
                       >
                         📅 Book
                       </button>
-                      <button className="py-2 bg-background text-accent border-2 border-accent rounded-lg hover:bg-gray-100 transition font-semibold text-sm">
+                      <button className={`py-2 rounded-lg transition font-semibold text-sm border-2 border-accent ${isDark ? 'bg-gray-700 text-accent hover:bg-gray-600' : 'bg-background text-accent hover:bg-gray-100'}`}>
                         👁️ Profile
                       </button>
                     </div>
@@ -235,10 +261,10 @@ export default function AllDoctors() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-xl shadow">
+            <div className={`text-center py-16 rounded-xl shadow ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
               <div className="text-6xl mb-4">🔍</div>
-              <p className="text-gray-600 text-lg mb-2">No doctors found matching your criteria</p>
-              <p className="text-sm text-gray-500 mb-6">Try adjusting your search filters</p>
+              <p className={`text-lg mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>No doctors found matching your criteria</p>
+              <p className={`text-sm mb-6 ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Try adjusting your search filters</p>
               <button
                 onClick={() => {
                   setSearchTerm("");
@@ -258,27 +284,27 @@ export default function AllDoctors() {
         {filteredDoctors.length > 0 && (
           <div className="max-w-7xl mx-auto mt-16">
             <div className="grid md:grid-cols-4 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow text-center">
+              <div className={`p-6 rounded-xl shadow text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <p className="text-3xl font-bold text-accent mb-2">{filteredDoctors.length}</p>
-                <p className="text-gray-600">Doctors Found</p>
+                <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Doctors Found</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow text-center">
+              <div className={`p-6 rounded-xl shadow text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <p className="text-3xl font-bold text-accent mb-2">
                   {(filteredDoctors.reduce((sum, d) => sum + (d.rating || 0), 0) / filteredDoctors.length).toFixed(1)}
                 </p>
-                <p className="text-gray-600">Average Rating</p>
+                <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Average Rating</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow text-center">
+              <div className={`p-6 rounded-xl shadow text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <p className="text-3xl font-bold text-accent mb-2">
                   {Math.max(...filteredDoctors.map(d => d.experience_years || 0))}+
                 </p>
-                <p className="text-gray-600">Max Experience</p>
+                <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Max Experience</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow text-center">
+              <div className={`p-6 rounded-xl shadow text-center ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                 <p className="text-3xl font-bold text-accent mb-2">
                   ${Math.min(...filteredDoctors.map(d => d.consultation_fee || 0))} - ${Math.max(...filteredDoctors.map(d => d.consultation_fee || 0))}
                 </p>
-                <p className="text-gray-600">Fee Range</p>
+                <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>Fee Range</p>
               </div>
             </div>
           </div>

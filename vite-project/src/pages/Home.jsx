@@ -4,10 +4,12 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { doctorAPI, appointmentAPI, patientAPI } from "../api/api";
 import { useAuth } from "../Authcontext/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const [counts, setCounts] = useState({ patients: 0, doctors: 0, appointments: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -61,13 +63,13 @@ export default function Home() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-background min-h-[70vh] sm:min-h-[80vh] flex items-center py-12 sm:py-16 lg:py-20">
+      <section className={`min-h-[70vh] sm:min-h-[80vh] flex items-center py-12 sm:py-16 lg:py-20 ${isDark ? 'bg-gray-900' : 'bg-background'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
           <div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-dark mb-4 sm:mb-6">
+            <h1 className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6 ${isDark ? 'text-white' : 'text-dark'}`}>
               Your Health, <span className="text-accent">Our Priority</span>
             </h1>
-            <p className="text-gray-600 mb-6 text-base sm:text-lg">
+            <p className={`mb-6 text-base sm:text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
               Connect with trusted healthcare professionals and book appointments at your convenience. Quality healthcare is just a click away.
             </p>
             <div className="flex gap-3 sm:gap-4 flex-wrap">
@@ -89,24 +91,24 @@ export default function Home() {
       </section>
 
       {/* Features Section (static highlights) */}
-      <section className="py-12 sm:py-16 bg-white">
+      <section className={`py-12 sm:py-16 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12">Why Choose MedCare?</h2>
+          <h2 className={`text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 ${isDark ? 'text-white' : 'text-dark'}`}>Why Choose MedCare?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+            <div className={`p-4 sm:p-6 rounded-xl text-center hover:shadow-lg transition ${isDark ? 'bg-gray-700' : 'bg-background'}`}>
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">👨‍⚕️</div>
-              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">Expert Doctors</h3>
-              <p className="text-sm sm:text-base text-gray-600">Access to certified medical professionals</p>
+              <h3 className={`text-lg sm:text-xl font-semibold mb-2 ${isDark ? 'text-gray-100' : 'text-dark'}`}>Expert Doctors</h3>
+              <p className={`text-sm sm:text-base ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Access to certified medical professionals</p>
             </div>
-            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+            <div className={`p-4 sm:p-6 rounded-xl text-center hover:shadow-lg transition ${isDark ? 'bg-gray-700' : 'bg-background'}`}>
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">📅</div>
-              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">Easy Booking</h3>
-              <p className="text-sm sm:text-base text-gray-600">Book appointments in seconds</p>
+              <h3 className={`text-lg sm:text-xl font-semibold mb-2 ${isDark ? 'text-gray-100' : 'text-dark'}`}>Easy Booking</h3>
+              <p className={`text-sm sm:text-base ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Book appointments in seconds</p>
             </div>
-            <div className="p-4 sm:p-6 bg-background rounded-xl text-center hover:shadow-lg transition">
+            <div className={`p-4 sm:p-6 rounded-xl text-center hover:shadow-lg transition ${isDark ? 'bg-gray-700' : 'bg-background'}`}>
               <div className="text-3xl sm:text-4xl mb-3 sm:mb-4">💬</div>
-              <h3 className="text-lg sm:text-xl font-semibold text-dark mb-2">24/7 Support</h3>
-              <p className="text-sm sm:text-base text-gray-600">Round the clock customer support</p>
+              <h3 className={`text-lg sm:text-xl font-semibold mb-2 ${isDark ? 'text-gray-100' : 'text-dark'}`}>24/7 Support</h3>
+              <p className={`text-sm sm:text-base ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Round the clock customer support</p>
             </div>
           </div>
         </div>
@@ -139,10 +141,10 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 sm:py-16 bg-background">
+      <section className={`py-12 sm:py-16 ${isDark ? 'bg-gray-900' : 'bg-background'}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-dark mb-4">Ready to Book an Appointment?</h2>
-          <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">Join thousands of patients who trust MedCare for their healthcare needs</p>
+          <h2 className={`text-2xl sm:text-3xl font-bold mb-4 ${isDark ? 'text-white' : 'text-dark'}`}>Ready to Book an Appointment?</h2>
+          <p className={`mb-6 sm:mb-8 text-base sm:text-lg ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Join thousands of patients who trust MedCare for their healthcare needs</p>
           <a href="/doctors" className="inline-block px-8 sm:px-10 py-3 sm:py-4 bg-primary text-dark rounded-lg font-semibold hover:shadow-xl transition text-sm sm:text-base active:scale-95">
             Explore Doctors Now
           </a>

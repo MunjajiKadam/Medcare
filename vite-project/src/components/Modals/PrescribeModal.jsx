@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { prescriptionAPI } from "../../api/api";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function PrescribeModal({ isOpen, appointmentId, patientId, onClose, onSuccess }) {
+  const { theme } = useTheme();
   const [medications, setMedications] = useState("");
   const [dosage, setDosage] = useState("");
   const [duration, setDuration] = useState("");
@@ -42,7 +44,7 @@ export default function PrescribeModal({ isOpen, appointmentId, patientId, onClo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6">
           <div className="flex justify-between items-center">
@@ -60,7 +62,7 @@ export default function PrescribeModal({ isOpen, appointmentId, patientId, onClo
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {message && (
             <div className={`p-3 rounded-lg text-sm ${
-              message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              message.includes("✓") ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
             }`}>
               {message}
             </div>
@@ -68,21 +70,21 @@ export default function PrescribeModal({ isOpen, appointmentId, patientId, onClo
 
           {/* Medications */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Medications *
             </label>
             <textarea
               value={medications}
               onChange={(e) => setMedications(e.target.value)}
               placeholder="List all medications (separated by comma or new line)..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               rows="3"
             />
           </div>
 
           {/* Dosage */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Dosage (Optional)
             </label>
             <input
@@ -90,13 +92,13 @@ export default function PrescribeModal({ isOpen, appointmentId, patientId, onClo
               value={dosage}
               onChange={(e) => setDosage(e.target.value)}
               placeholder="e.g., 500mg tablets"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
 
           {/* Duration */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Duration (Optional)
             </label>
             <input
@@ -104,30 +106,30 @@ export default function PrescribeModal({ isOpen, appointmentId, patientId, onClo
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               placeholder="e.g., 7 days, 2 weeks"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
             />
           </div>
 
           {/* Instructions */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Instructions (Optional)
             </label>
             <textarea
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
               placeholder="Take with food, avoid alcohol, etc..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               rows="2"
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 border-2 border-gray-300 text-dark rounded-lg hover:bg-gray-100 transition font-semibold"
+              className="flex-1 py-2 border-2 border-gray-300 dark:border-gray-600 text-dark dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition font-semibold"
             >
               Cancel
             </button>

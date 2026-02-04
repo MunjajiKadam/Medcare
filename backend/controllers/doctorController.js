@@ -137,3 +137,78 @@ export const getCurrentDoctorProfile = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// Update doctor settings (theme, notifications, etc.)
+export const updateDoctorSettings = async (req, res) => {
+  try {
+    const { id } = req.user;
+    const { theme } = req.body;
+
+    console.log("📤 [DOCTOR SETTINGS] Updating settings for user_id:", id);
+    console.log("📊 [DOCTOR SETTINGS] Settings data:", { theme });
+
+    // Validate theme value
+    const validThemes = ['light', 'dark', 'auto'];
+    if (theme && !validThemes.includes(theme)) {
+      return res.status(400).json({ message: 'Invalid theme value. Must be light, dark, or auto' });
+    }
+
+    const result = await executeQuery(
+      'UPDATE users SET theme_preference = ? WHERE id = ?',
+      [theme, id]
+    );
+
+    if (result.affectedRows === 0) {
+      console.error("❌ [DOCTOR SETTINGS] User not found for user_id:", id);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log("✅ [DOCTOR SETTINGS] Settings updated successfully for user_id:", id);
+    res.json({ 
+      message: 'Settings updated successfully',
+      theme 
+    });
+  } catch (error) {
+    console.error('❌ [DOCTOR SETTINGS] Update settings error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// Delete doctor (Admin only)
+export const deleteDoctor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.user;
+
+    if (role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied: Admin only' });
+    }
+
+    console.log("📤 [DELETE DOCTOR] Deleting doctor ID:", id);
+
+    // First get the user_id associated with this doctor
+    const doctor = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [id]);
+    if (doctor.length === 0) {
+      console.error("❌ [DELETE DOCTOR] Doctor not found:", id);
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    const userId = doctor[0].user_id;
+
+    // Delete doctor record (cascade will handle related records like appointments, reviews, etc.)
+    const result = await executeQuery('DELETE FROM doctors WHERE id = ?', [id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+
+    // Delete user account
+    await executeQuery('DELETE FROM users WHERE id = ?', [userId]);
+
+    console.log("✅ [DELETE DOCTOR] Doctor deleted successfully:", id);
+    res.json({ message: 'Doctor deleted successfully' });
+  } catch (error) {
+    console.error('❌ [DELETE DOCTOR] Delete doctor error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};

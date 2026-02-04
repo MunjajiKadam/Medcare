@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { notificationAPI } from "../../api/api";
+import { useTheme } from "../../context/ThemeContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
 export default function SendNotification() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -70,8 +72,8 @@ export default function SendNotification() {
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Loading patients...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading patients...</p>
       </div>
       <Footer />
     </>
@@ -80,45 +82,47 @@ export default function SendNotification() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
         <div className="max-w-3xl mx-auto">
           <button
             onClick={() => navigate(-1)}
-            className="mb-4 px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+            className="mb-4 px-4 py-2 bg-white dark:bg-gray-800 border-2 border-purple-600 dark:border-purple-500 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-600 hover:text-white dark:hover:bg-purple-600 dark:hover:text-white transition font-semibold text-sm active:scale-95 shadow-md dark:shadow-gray-900/50"
           >
             ← Back
           </button>
 
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-dark mb-2">📬 Send Notification to Patient</h1>
-            <p className="text-gray-600 mb-6">Send a direct message notification to your patients</p>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/50 p-8 border border-gray-200 dark:border-gray-700">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">📬 Send Notification to Patient</h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">Send a direct message notification to your patients</p>
 
             {message && (
-              <div className={`mb-6 p-4 rounded-lg ${
-                message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              <div className={`mb-6 p-4 rounded-lg border-2 ${
+                message.includes("✓") 
+                  ? "bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-600 text-green-700 dark:text-green-400" 
+                  : "bg-red-100 dark:bg-red-900/30 border-red-400 dark:border-red-600 text-red-700 dark:text-red-400"
               }`}>
                 {message}
               </div>
             )}
 
             {patients.length === 0 ? (
-              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6 text-center">
-                <p className="text-yellow-800 font-semibold mb-2">📋 No Patients Found</p>
-                <p className="text-yellow-700 text-sm">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-700 rounded-lg p-6 text-center">
+                <p className="text-yellow-800 dark:text-yellow-300 font-semibold mb-2">📋 No Patients Found</p>
+                <p className="text-yellow-700 dark:text-yellow-400 text-sm">
                   You don't have any patients yet. Patients will appear here after they book appointments with you.
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-dark mb-2">
-                    Select Patient <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Select Patient <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <select
                     name="patient_id"
                     value={formData.patient_id}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition"
                     required
                   >
                     <option value="">Choose a patient...</option>
@@ -128,14 +132,14 @@ export default function SendNotification() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {patients.length} patient{patients.length !== 1 ? 's' : ''} available
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-dark mb-2">
-                    Notification Title <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Notification Title <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -143,18 +147,18 @@ export default function SendNotification() {
                     value={formData.title}
                     onChange={handleChange}
                     placeholder="E.g., Appointment Reminder, Health Update, etc."
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition"
                     maxLength="100"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {formData.title.length}/100 characters
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-dark mb-2">
-                    Message <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    Message <span className="text-red-500 dark:text-red-400">*</span>
                   </label>
                   <textarea
                     name="message"
@@ -162,11 +166,11 @@ export default function SendNotification() {
                     onChange={handleChange}
                     placeholder="Write your notification message here..."
                     rows="6"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-lg focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition"
                     maxLength="500"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {formData.message.length}/500 characters
                   </p>
                 </div>
@@ -175,14 +179,14 @@ export default function SendNotification() {
                   <button
                     type="button"
                     onClick={() => setFormData({ patient_id: "", title: "", message: "" })}
-                    className="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold hover:bg-gray-300 transition"
+                    className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition active:scale-95"
                   >
                     Clear Form
                   </button>
                   <button
                     type="submit"
                     disabled={sending}
-                    className="flex-1 py-3 bg-accent text-white rounded-lg font-bold hover:opacity-90 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-500 dark:to-blue-500 text-white rounded-lg font-bold hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                   >
                     {sending ? "Sending..." : "📤 Send Notification"}
                   </button>
@@ -191,9 +195,9 @@ export default function SendNotification() {
             )}
 
             {/* Quick Tips */}
-            <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <h3 className="font-semibold text-blue-900 mb-2">💡 Tips for Effective Notifications</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400 p-4 rounded">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 Tips for Effective Notifications</h3>
+              <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
                 <li>• Keep messages clear and concise</li>
                 <li>• Use descriptive titles (e.g., "Lab Results Ready")</li>
                 <li>• Include action items if needed</li>

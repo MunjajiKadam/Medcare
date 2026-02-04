@@ -78,7 +78,7 @@ export default function Dashboard() {
       <div className="min-h-screen bg-background p-4 sm:p-6">
         {message && (
           <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg max-w-4xl mx-auto ${
-            message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            message.includes("✓") ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
           }`}>
             {message}
           </div>
@@ -86,7 +86,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-dark mb-2">Welcome Back, {user?.name || 'User'}! 👋</h1>
-        <p className="text-sm sm:text-base text-gray-600">Manage your health and appointments</p>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage your health and appointments</p>
       </div>
 
       {/* Quick Actions */}
@@ -95,7 +95,7 @@ export default function Dashboard() {
           <Link
             key={idx}
             to={action.path}
-            className="bg-white p-3 sm:p-4 rounded-lg sm:rounded-xl shadow hover:shadow-lg transition text-center active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+            className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-lg sm:rounded-xl shadow dark:shadow-gray-900/50 hover:shadow-lg dark:hover:shadow-gray-900/70 transition text-center active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 dark:ring-offset-gray-900"
             aria-label={action.label}
           >
             <div className="text-2xl sm:text-3xl mb-1 sm:mb-2" role="img" aria-hidden="true">{action.icon}</div>
@@ -106,7 +106,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Upcoming Appointments */}
-        <div className="lg:col-span-2 bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow dark:shadow-gray-900/50">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-dark">Upcoming Appointments</h2>
             <button 
@@ -127,14 +127,14 @@ export default function Dashboard() {
           ) : upcomingAppointments.length > 0 ? (
             <div className="space-y-4">
               {upcomingAppointments.map((apt) => (
-                <div key={apt.id} className="border-l-4 border-accent p-3 sm:p-4 bg-background rounded-lg">
+                <div key={apt.id} className="border-l-4 border-accent p-3 sm:p-4 bg-background dark:bg-gray-700 rounded-lg">
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2 gap-2">
                     <div className="flex-1">
                       <p className="font-semibold text-dark text-base sm:text-lg">{apt.doctor_name || apt.doctor}</p>
-                      <p className="text-xs sm:text-sm text-gray-600">{apt.specialization}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{apt.specialization}</p>
                     </div>
                     <span className={`text-xs font-bold px-2 sm:px-3 py-1 rounded self-start ${
-                      apt.status === "confirmed" || apt.status === "scheduled" || apt.status === "Confirmed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
+                      apt.status === "confirmed" || apt.status === "scheduled" || apt.status === "Confirmed" ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300" : "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
                     }`}>
                       {apt.status}
                     </span>
@@ -157,7 +157,7 @@ export default function Dashboard() {
                     </button>
                     <button 
                       onClick={() => navigate('/patient/appointments')}
-                      className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-1 border border-accent text-accent rounded hover:bg-background transition active:scale-95"
+                      className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-1 border border-accent text-accent rounded hover:bg-background dark:hover:bg-gray-700 transition active:scale-95"
                     >
                       <span className="hidden sm:inline">View All</span>
                       <span className="sm:hidden">All</span>
@@ -178,21 +178,21 @@ export default function Dashboard() {
         </div>
 
         {/* Health Metrics */}
-        <div className="bg-white p-4 sm:p-6 rounded-lg sm:rounded-xl shadow">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow dark:shadow-gray-900/50">
           <h2 className="text-xl sm:text-2xl font-bold text-dark mb-4 sm:mb-6">Health Metrics</h2>
           <div className="space-y-4">
             {healthMetrics.length > 0 ? (
               healthMetrics.map((metric, idx) => (
-                <div key={idx} className="p-3 sm:p-4 bg-background rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">{metric.record_type}</p>
+                <div key={idx} className="p-3 sm:p-4 bg-background dark:bg-gray-700 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{metric.record_type}</p>
                   <p className="text-lg sm:text-xl font-bold text-dark mb-1">{metric.record_value}</p>
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                  <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-2 py-1 rounded">
                     ✓ {new Date(metric.record_date).toLocaleDateString()}
                   </span>
                 </div>
               ))
             ) : (
-              <p className="text-sm sm:text-base text-gray-600 text-center py-6">No health records yet</p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 text-center py-6">No health records yet</p>
             )}
           </div>
         </div>

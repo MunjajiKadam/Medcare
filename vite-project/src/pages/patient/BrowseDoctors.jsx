@@ -40,7 +40,7 @@ export default function BrowseDoctors() {
   });
 
   if (loading) return (
-    <div className="min-h-screen bg-background px-4 py-12">
+    <div className="min-h-screen bg-background dark:bg-gray-900 px-4 py-12">
       <div className="max-w-6xl mx-auto">
         <div className="h-10 bg-gray-200 rounded w-24 mb-8 animate-pulse"></div>
         <div className="text-center mb-12">
@@ -65,7 +65,7 @@ export default function BrowseDoctors() {
       <div className="max-w-6xl mx-auto mb-4">
         <button
           onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+          className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white dark:hover:bg-accent transition font-semibold text-sm"
         >
           ← Back
         </button>
@@ -94,7 +94,7 @@ export default function BrowseDoctors() {
           placeholder="🔍 Search doctors by name..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-6 py-3 border-2 border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white"
+          className="w-full px-6 py-3 border-2 border-accent rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/20 bg-white dark:bg-gray-800 dark:border-gray-600"
           aria-label="Search doctors by name"
         />
       </div>
@@ -126,7 +126,7 @@ export default function BrowseDoctors() {
             {filteredDoctors.map((doctor) => (
               <article
                 key={doctor.id}
-                className="bg-white rounded-xl shadow hover:shadow-xl transition overflow-hidden cursor-pointer group focus-within:ring-2 focus-within:ring-accent"
+                className="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/50 hover:shadow-xl dark:hover:shadow-gray-900/70 transition overflow-hidden cursor-pointer group focus-within:ring-2 focus-within:ring-accent"
                 onClick={() => navigate(`/patient/doctor/${doctor.id}`)}
                 role="button"
                 tabIndex="0"
@@ -201,7 +201,7 @@ export default function BrowseDoctors() {
                         e.stopPropagation();
                         navigate(`/patient/doctor/${doctor.id}`);
                       }}
-                      className="py-2 bg-background text-accent rounded-lg hover:bg-gray-100 transition font-semibold text-sm border-2 border-accent active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+                      className="py-2 bg-background dark:bg-gray-700 text-accent rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition font-semibold text-sm border-2 border-accent active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
                       aria-label={`View Dr. ${doctor.name} full profile`}
                     >
                       👁️ View

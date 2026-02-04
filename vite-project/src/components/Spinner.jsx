@@ -9,7 +9,7 @@ export default function Spinner({ size = 'md', className = '' }) {
   return (
     <div className={`flex items-center justify-center ${className}`} role="status" aria-live="polite">
       <div
-        className={`${sizes[size]} border-accent border-t-transparent rounded-full animate-spin`}
+        className={`${sizes[size]} border-purple-600 dark:border-purple-400 border-t-transparent rounded-full animate-spin`}
         aria-label="Loading"
       />
       <span className="sr-only">Loading...</span>

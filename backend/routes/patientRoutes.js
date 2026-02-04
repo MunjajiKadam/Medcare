@@ -6,6 +6,7 @@ import {
   getPatientProfile,
   updatePatientProfile,
   updatePersonalInfo,
+  updateSettings,
   deletePatient
 } from '../controllers/patientController.js';
 
@@ -23,6 +24,9 @@ router.put('/profile', authMiddleware, updatePatientProfile);
 // Protected routes - UPDATE personal info (name, email, phone) (must be before /:id route)
 router.put('/personal-info', authMiddleware, updatePersonalInfo);
 
+// Protected routes - UPDATE settings (theme, notifications)
+router.put('/settings', authMiddleware, updateSettings);
+
 // Get patient by ID (admin or self) - this must be AFTER all specific routes
 router.get('/:id', authMiddleware, getPatientById);
 
@@ -30,6 +34,6 @@ router.get('/:id', authMiddleware, getPatientById);
 router.put('/admin/:id', authMiddleware, roleMiddleware(['admin']), updatePatientProfile);
 
 // Admin routes - DELETE patient
-router.delete('/:id', authMiddleware, roleMiddleware(['admin']), deletePatient);
+router.delete('/admin/:id', authMiddleware, roleMiddleware(['admin']), deletePatient);
 
 export default router;

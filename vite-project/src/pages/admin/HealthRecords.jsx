@@ -56,15 +56,15 @@ export default function HealthRecords() {
     (r.record_type || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><p>Loading health records...</p></div>;
+  if (loading) return <div className="min-h-screen bg-background dark:bg-gray-900 flex items-center justify-center"><p className="text-gray-700 dark:text-gray-300">Loading health records...</p></div>;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={() => navigate("/admin/dashboard")}
-            className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+            className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white dark:hover:bg-accent transition font-semibold text-sm"
           >
             ← Back to Dashboard
           </button>
@@ -77,48 +77,48 @@ export default function HealthRecords() {
           </button>
         </div>
 
-        <h1 className="text-3xl font-bold text-dark mb-2">🏥 Health Records</h1>
-        <p className="text-gray-600 mb-6">View and manage all patient health records</p>
+        <h1 className="text-3xl font-bold text-dark dark:text-white mb-2">🏥 Health Records</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">View and manage all patient health records</p>
 
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+          <div className={`mb-6 p-4 rounded-lg ${message.includes("✓") ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"}`}>
             {message}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 p-6 mb-6">
           <input
             type="text"
             placeholder="Search by patient name or record type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+            className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:border-accent placeholder:text-gray-500 dark:placeholder:text-gray-400"
           />
         </div>
 
         {filteredRecords.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-lg p-6 text-center text-gray-500">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 p-6 text-center text-gray-500 dark:text-gray-400">
             No health records found
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg overflow-x-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-100 border-b">
+              <thead className="bg-gray-100 dark:bg-gray-700 border-b dark:border-gray-600">
                 <tr>
-                  <th className="px-6 py-3 text-left font-semibold text-dark">Patient</th>
-                  <th className="px-6 py-3 text-left font-semibold text-dark">Record Type</th>
-                  <th className="px-6 py-3 text-left font-semibold text-dark">Record Value</th>
-                  <th className="px-6 py-3 text-left font-semibold text-dark">Date</th>
-                  <th className="px-6 py-3 text-center font-semibold text-dark">Actions</th>
+                  <th className="px-6 py-3 text-left font-semibold text-dark dark:text-white">Patient</th>
+                  <th className="px-6 py-3 text-left font-semibold text-dark dark:text-white">Record Type</th>
+                  <th className="px-6 py-3 text-left font-semibold text-dark dark:text-white">Record Value</th>
+                  <th className="px-6 py-3 text-left font-semibold text-dark dark:text-white">Date</th>
+                  <th className="px-6 py-3 text-center font-semibold text-dark dark:text-white">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRecords.map((record, idx) => (
-                  <tr key={idx} className="border-b hover:bg-gray-50">
-                    <td className="px-6 py-4 font-semibold text-dark">{record.patient_name || "N/A"}</td>
-                    <td className="px-6 py-4">{record.record_type || "N/A"}</td>
-                    <td className="px-6 py-4">{record.record_value || "N/A"}</td>
-                    <td className="px-6 py-4 text-sm">{new Date(record.record_date).toLocaleDateString() || "N/A"}</td>
+                  <tr key={idx} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td className="px-6 py-4 font-semibold text-dark dark:text-white">{record.patient_name || "N/A"}</td>
+                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{record.record_type || "N/A"}</td>
+                    <td className="px-6 py-4 text-gray-700 dark:text-gray-300">{record.record_value || "N/A"}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{new Date(record.record_date).toLocaleDateString() || "N/A"}</td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => deleteRecord(record.id)}
@@ -134,8 +134,8 @@ export default function HealthRecords() {
           </div>
         )}
 
-        <div className="mt-6 text-gray-600 text-sm">
-          Total Records: <span className="font-bold text-dark">{filteredRecords.length}</span>
+        <div className="mt-6 text-gray-600 dark:text-gray-300 text-sm">
+          Total Records: <span className="font-bold text-dark dark:text-white">{filteredRecords.length}</span>
         </div>
       </div>
     </div>

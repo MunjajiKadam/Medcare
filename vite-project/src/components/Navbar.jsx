@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../Authcontext/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
@@ -9,6 +10,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const isActive = (path) => location.pathname === path;
 
@@ -35,15 +37,15 @@ export default function Navbar() {
   const navLinks = getNavigation();
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-800 shadow-md dark:shadow-gray-900/50 sticky top-0 z-50 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="text-xl sm:text-2xl font-bold text-accent flex items-center gap-2">
-          🏥 <span>Med<span className="text-dark">Care</span></span>
+          🏥 <span>Med<span className="text-dark dark:text-white">Care</span></span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex gap-6 lg:gap-8 items-center text-dark font-medium">
+        <div className="hidden md:flex gap-6 lg:gap-8 items-center text-dark dark:text-gray-200 font-medium">
           {navLinks.map(link => (
             <Link
               key={link.to}
@@ -92,7 +94,7 @@ export default function Navbar() {
                   <span className="lg:hidden">👤</span>
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg dark:shadow-gray-900/50 z-10">
                     <Link
                       to={user.role === "patient" ? "/patient/profile" : user.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"}
                       className="block px-4 py-2 text-dark hover:bg-gray-100"
@@ -109,7 +111,7 @@ export default function Navbar() {
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 border-t"
+                      className="block w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 border-t dark:border-gray-600"
                     >
                       Logout
                     </button>
@@ -143,7 +145,7 @@ export default function Navbar() {
               key={link.to}
               to={link.to}
               onClick={() => setMobileOpen(false)}
-              className={`block px-4 py-2 rounded ${isActive(link.to) ? "bg-accent text-white" : "text-dark hover:bg-gray-100"}`}
+              className={`block px-4 py-2 rounded ${isActive(link.to) ? "bg-accent text-white" : "text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`}
             >
               {link.label}
             </Link>
@@ -167,7 +169,7 @@ export default function Navbar() {
 
       {/* Mobile Navigation - For logged-in users */}
       {mobileOpen && user && (
-        <div className="md:hidden bg-background border-t border-gray-200 p-4 space-y-2">
+        <div className="md:hidden bg-background dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 p-4 space-y-2">
           <Link
             to={
               user.role === "patient"
@@ -184,14 +186,14 @@ export default function Navbar() {
           <Link
             to={user.role === "patient" ? "/patient/profile" : user.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"}
             onClick={() => setMobileOpen(false)}
-            className="block px-4 py-2 text-dark hover:bg-gray-100 rounded"
+            className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
           >
             👤 {user.name} - Profile
           </Link>
           <Link
             to={user.role === "patient" ? "/patient/settings" : user.role === "doctor" ? "/doctor/settings" : "#"}
             onClick={() => setMobileOpen(false)}
-            className="block px-4 py-2 text-dark hover:bg-gray-100 rounded"
+            className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
           >
             ⚙️ Settings
           </Link>

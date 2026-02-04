@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Authcontext/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import axios from "../../api/axios";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FormInput from "../../components/FormInput";
@@ -8,10 +10,10 @@ import Spinner from "../../components/Spinner";
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [notification, setNotification] = useState(true);
   const [newsletter, setNewsletter] = useState(true);
-  const [theme, setTheme] = useState("light");
   const [message, setMessage] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -42,12 +44,14 @@ export default function Settings() {
     try {
       setSaveLoading(true);
       console.log("📤 [USER SETTINGS] Saving user preferences...");
-      const settings = {
-        notification,
-        newsletter,
-        theme
-      };
-      console.log("✅ [USER SETTINGS] Settings saved:", settings);
+      
+      // Save theme to database
+      const response = await axios.put("/patients/settings", { theme });
+      
+      // Update user data in AuthContext
+      updateUser({ theme });
+      
+      console.log("✅ [USER SETTINGS] Settings saved successfully");
       setMessage("✓ Settings saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
@@ -116,7 +120,7 @@ export default function Settings() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="min-h-screen bg-background dark:bg-gray-900 p-4 sm:p-6 transition-colors duration-200">
         <div className="max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}
@@ -127,16 +131,16 @@ export default function Settings() {
         </button>
 
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-dark mb-2">⚙️ Settings</h1>
-          <p className="text-gray-600">Manage your account preferences and security</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-dark dark:text-white mb-2">⚙️ Settings</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage your account preferences and security</p>
         </div>
 
         {message && (
           <div 
             className={`mb-6 p-4 rounded-lg ${
               message.startsWith("✓") 
-                ? "bg-green-100 text-green-700 border border-green-200" 
-                : "bg-red-100 text-red-700 border border-red-200"
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700" 
+                : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
             }`}
             role="alert"
             aria-live="polite"
@@ -147,13 +151,13 @@ export default function Settings() {
 
         {/* Account Section */}
         <section className="card mb-6" aria-labelledby="account-heading">
-          <h2 id="account-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="account-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">👤</span> Account Information
           </h2>
           
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
@@ -161,13 +165,13 @@ export default function Settings() {
                 type="email"
                 value={user?.email || ""}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Full Name
               </label>
               <input
@@ -175,13 +179,13 @@ export default function Settings() {
                 type="text"
                 value={user?.name || ""}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
 
             <div>
-              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Account Type
               </label>
               <input
@@ -189,7 +193,7 @@ export default function Settings() {
                 type="text"
                 value={user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || "Patient"}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
@@ -206,7 +210,7 @@ export default function Settings() {
 
         {/* Security Section */}
         <section className="card mb-6" aria-labelledby="security-heading">
-          <h2 id="security-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="security-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🔐</span> Security
           </h2>
           
@@ -222,7 +226,7 @@ export default function Settings() {
             ) : (
               <form 
                 onSubmit={handleChangePassword}
-                className="bg-blue-50 p-4 sm:p-6 rounded-lg border-2 border-blue-200"
+                className="bg-blue-50 dark:bg-blue-900/20 p-4 sm:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800"
                 aria-labelledby="password-form-heading"
               >
                 <h3 id="password-form-heading" className="sr-only">Change Password Form</h3>
@@ -306,12 +310,12 @@ export default function Settings() {
               </form>
             )}
 
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
+            <div className="flex items-start sm:items-center justify-between p-4 bg-background dark:bg-gray-800 rounded-lg gap-4">
               <div className="flex-1">
-                <p className="font-semibold text-dark flex items-center gap-2">
+                <p className="font-semibold text-dark dark:text-white flex items-center gap-2">
                   <span aria-hidden="true">🛡️</span> Two-Factor Authentication
                 </p>
-                <p className="text-sm text-gray-600 mt-1">Add an extra layer of security to your account</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Add an extra layer of security to your account</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -334,15 +338,15 @@ export default function Settings() {
 
         {/* Notifications */}
         <section className="card mb-6" aria-labelledby="notifications-heading">
-          <h2 id="notifications-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="notifications-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🔔</span> Notifications
           </h2>
           
           <div className="space-y-4">
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
+            <div className="flex items-start sm:items-center justify-between p-4 bg-background dark:bg-gray-800 rounded-lg gap-4">
               <div className="flex-1">
-                <p className="font-semibold text-dark">Appointment Reminders</p>
-                <p className="text-sm text-gray-600 mt-1">Get reminded about your upcoming appointments</p>
+                <p className="font-semibold text-dark dark:text-white">Appointment Reminders</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Get reminded about your upcoming appointments</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -357,10 +361,10 @@ export default function Settings() {
               </label>
             </div>
 
-            <div className="flex items-start sm:items-center justify-between p-4 bg-background rounded-lg gap-4">
+            <div className="flex items-start sm:items-center justify-between p-4 bg-background dark:bg-gray-800 rounded-lg gap-4">
               <div className="flex-1">
-                <p className="font-semibold text-dark">Newsletter</p>
-                <p className="text-sm text-gray-600 mt-1">Subscribe to health tips and updates</p>
+                <p className="font-semibold text-dark dark:text-white">Newsletter</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Subscribe to health tips and updates</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -379,27 +383,27 @@ export default function Settings() {
 
         {/* Preferences */}
         <section className="card mb-6" aria-labelledby="preferences-heading">
-          <h2 id="preferences-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="preferences-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🎨</span> Preferences
           </h2>
           
           <div className="space-y-4">
             <div>
-              <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Theme Preference
               </label>
               <select
                 id="theme"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors"
+                className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 aria-label="Select theme preference"
               >
                 <option value="light">☀️ Light Theme</option>
                 <option value="dark">🌙 Dark Theme</option>
                 <option value="auto">🔄 Auto (System)</option>
               </select>
-              <p className="text-xs text-gray-500 mt-2">Choose how MedCare appears to you</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Choose how MedCare appears to you</p>
             </div>
           </div>
         </section>
@@ -423,11 +427,11 @@ export default function Settings() {
         </section>
 
         {/* Danger Zone */}
-        <section 
-          className="bg-red-50 border-2 border-red-200 p-6 sm:p-8 rounded-xl"
+        <section
+          className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 p-6 sm:p-8 rounded-xl"
           aria-labelledby="danger-zone-heading"
         >
-          <h2 id="danger-zone-heading" className="text-2xl font-bold text-red-600 mb-4 flex items-center gap-2">
+          <h2 id="danger-zone-heading" className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
             <span aria-hidden="true">⚠️</span> Danger Zone
           </h2>
           
@@ -439,7 +443,7 @@ export default function Settings() {
             🚪 Logout
           </button>
 
-          <p className="text-sm text-red-600 mt-4">
+          <p className="text-sm text-red-600 dark:text-red-400 mt-4">
             This will log you out of your current session. You can log in again anytime.
           </p>
         </section>

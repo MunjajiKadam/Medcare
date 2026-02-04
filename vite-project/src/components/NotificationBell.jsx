@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../Authcontext/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import axios from '../api/axios';
 
 export default function NotificationBell() {
@@ -9,6 +10,7 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const { user } = useAuth();
+  const { theme } = useTheme();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function NotificationBell() {
       {/* Bell Icon */}
       <button
         onClick={toggleDropdown}
-        className="relative p-2 text-gray-600 hover:text-accent transition-colors focus:outline-none"
+        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 focus:outline-none hover:bg-purple-50 dark:hover:bg-gray-700 rounded-lg"
         aria-label="Notifications"
       >
         <svg
@@ -155,7 +157,7 @@ export default function NotificationBell() {
         </svg>
         {/* Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 dark:from-red-600 dark:to-pink-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg animate-pulse">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -163,14 +165,17 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[32rem] overflow-hidden flex flex-col">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl dark:shadow-gray-900/70 border border-gray-200 dark:border-gray-700 z-50 max-h-[32rem] overflow-hidden flex flex-col">
           {/* Header */}
-          <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-            <h3 className="font-semibold text-dark">Notifications</h3>
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-700">
+            <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <span className="text-xl">🔔</span>
+              Notifications
+            </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-accent hover:underline"
+                className="text-xs text-purple-600 dark:text-purple-400 hover:underline font-semibold"
               >
                 Mark all as read
               </button>
@@ -178,24 +183,25 @@ export default function NotificationBell() {
           </div>
 
           {/* Notifications List */}
-          <div className="overflow-y-auto flex-1">
+          <div className="overflow-y-auto flex-1 bg-gray-50 dark:bg-gray-800">
             {loading ? (
-              <div className="p-8 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto"></div>
-                <p className="mt-2 text-sm">Loading...</p>
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-purple-600 dark:border-purple-400 mx-auto"></div>
+                <p className="mt-3 text-sm font-medium">Loading...</p>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p className="text-4xl mb-2">🔔</p>
-                <p className="text-sm">No notifications yet</p>
+              <div className="p-10 text-center text-gray-500 dark:text-gray-400">
+                <p className="text-5xl mb-3 animate-bounce">🔔</p>
+                <p className="text-sm font-medium">No notifications yet</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">You're all caught up!</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 hover:bg-gray-50 transition-colors ${
-                      !notification.is_read ? 'bg-blue-50' : ''
+                    className={`p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 ${
+                      !notification.is_read ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 dark:border-blue-400' : 'bg-white dark:bg-gray-800'
                     }`}
                   >
                     <div className="flex gap-3">
@@ -204,12 +210,12 @@ export default function NotificationBell() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
-                          <h4 className="font-semibold text-dark text-sm">
+                          <h4 className="font-semibold text-gray-800 dark:text-white text-sm">
                             {notification.title}
                           </h4>
                           <button
                             onClick={() => deleteNotification(notification.id)}
-                            className="text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                            className="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0"
                             aria-label="Delete notification"
                           >
                             <svg
@@ -226,17 +232,17 @@ export default function NotificationBell() {
                             </svg>
                           </button>
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 break-words">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 break-words">
                           {notification.message}
                         </p>
                         <div className="flex justify-between items-center mt-2">
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                             {formatTime(notification.created_at)}
                           </span>
                           {!notification.is_read && (
                             <button
                               onClick={() => markAsRead(notification.id)}
-                              className="text-xs text-accent hover:underline"
+                              className="text-xs text-purple-600 dark:text-purple-400 hover:underline font-semibold"
                             >
                               Mark as read
                             </button>
@@ -252,10 +258,10 @@ export default function NotificationBell() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 bg-gray-50 text-center">
+            <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-700 text-center">
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-sm text-accent hover:underline font-medium"
+                className="text-sm text-purple-600 dark:text-purple-400 hover:underline font-semibold"
               >
                 Close
               </button>

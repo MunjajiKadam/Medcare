@@ -28,6 +28,10 @@ export const doctorAPI = {
   // Admin - Update doctor
   updateDoctorAdmin: (doctorId, data) =>
     axios.put(`/doctors/admin/${doctorId}`, data),
+
+  // Admin - Delete doctor
+  deleteDoctorAdmin: (doctorId) =>
+    axios.delete(`/doctors/admin/${doctorId}`),
 };
 
 // Appointment API calls
@@ -68,6 +72,9 @@ export const patientAPI = {
 
   // Admin - Update patient
   updatePatientAdmin: (id, data) => axios.put(`/patients/admin/${id}`, data),
+
+  // Admin - Delete patient
+  deletePatientAdmin: (id) => axios.delete(`/patients/admin/${id}`),
 };
 
 // Health Record API calls

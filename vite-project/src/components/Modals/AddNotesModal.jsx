@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { consultationNotesAPI } from "../../api/api";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function AddNotesModal({ isOpen, appointmentId, patientId, onClose, onSuccess }) {
+  const { theme } = useTheme();
   const [notes, setNotes] = useState("");
   const [observations, setObservations] = useState("");
   const [followUp, setFollowUp] = useState("");
@@ -51,7 +53,7 @@ export default function AddNotesModal({ isOpen, appointmentId, patientId, onClos
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-96 overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-96 overflow-y-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-secondary to-accent p-6 sticky top-0">
           <div className="flex justify-between items-center">
@@ -69,7 +71,7 @@ export default function AddNotesModal({ isOpen, appointmentId, patientId, onClos
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {message && (
             <div className={`p-3 rounded-lg text-sm ${
-              message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              message.includes("✓") ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
             }`}>
               {message}
             </div>
@@ -77,87 +79,87 @@ export default function AddNotesModal({ isOpen, appointmentId, patientId, onClos
 
           {/* Consultation Notes */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Consultation Notes *
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Enter your consultation notes here..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               rows="4"
             />
           </div>
 
           {/* Vitals Section */}
-          <div className="bg-background p-4 rounded-lg">
-            <h3 className="font-semibold text-dark mb-3">📊 Vital Signs (Optional)</h3>
+          <div className="bg-background dark:bg-gray-700 p-4 rounded-lg">
+            <h3 className="font-semibold text-dark dark:text-white mb-3">📊 Vital Signs (Optional)</h3>
             <div className="grid grid-cols-2 gap-3">
               <input
                 type="text"
                 placeholder="Blood Pressure (e.g., 120/80)"
                 value={vitals.bloodPressure}
                 onChange={(e) => handleVitalsChange("bloodPressure", e.target.value)}
-                className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-accent"
+                className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 rounded text-sm focus:outline-none focus:border-accent"
               />
               <input
                 type="text"
                 placeholder="Temperature (°F)"
                 value={vitals.temperature}
                 onChange={(e) => handleVitalsChange("temperature", e.target.value)}
-                className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-accent"
+                className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 rounded text-sm focus:outline-none focus:border-accent"
               />
               <input
                 type="text"
                 placeholder="Heart Rate (bpm)"
                 value={vitals.heartRate}
                 onChange={(e) => handleVitalsChange("heartRate", e.target.value)}
-                className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-accent"
+                className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 rounded text-sm focus:outline-none focus:border-accent"
               />
               <input
                 type="text"
                 placeholder="Respiratory Rate"
                 value={vitals.respiratoryRate}
                 onChange={(e) => handleVitalsChange("respiratoryRate", e.target.value)}
-                className="p-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-accent"
+                className="p-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-600 dark:text-white dark:placeholder-gray-400 rounded text-sm focus:outline-none focus:border-accent"
               />
             </div>
           </div>
 
           {/* Observations */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Observations (Optional)
             </label>
             <textarea
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
               placeholder="Additional observations..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               rows="2"
             />
           </div>
 
           {/* Follow Up */}
           <div>
-            <label className="block text-sm font-semibold text-dark mb-2">
+            <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
               Follow-up Instructions (Optional)
             </label>
             <textarea
               value={followUp}
               onChange={(e) => setFollowUp(e.target.value)}
               placeholder="Follow-up instructions for patient..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               rows="2"
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2 border-2 border-gray-300 text-dark rounded-lg hover:bg-gray-100 transition font-semibold"
+              className="flex-1 py-2 border-2 border-gray-300 dark:border-gray-600 text-dark dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition font-semibold"
             >
               Cancel
             </button>

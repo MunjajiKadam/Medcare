@@ -53,12 +53,12 @@ export default function Appointments() {
   if (loading) return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="min-h-screen bg-background dark:bg-gray-900 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="mb-4">
-            <div className="h-10 bg-gray-200 rounded w-24 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
           </div>
-          <div className="h-8 bg-gray-200 rounded w-64 mb-6 animate-pulse"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64 mb-6 animate-pulse"></div>
           <div className="space-y-4">
             <SkeletonCard type="appointment" />
             <SkeletonCard type="appointment" />
@@ -73,12 +73,12 @@ export default function Appointments() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="min-h-screen bg-background dark:bg-gray-900 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
           <button
             onClick={() => navigate(-1)}
-            className="mb-4 px-3 sm:px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm active:scale-95"
+            className="mb-4 px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white dark:hover:bg-accent transition font-semibold text-sm active:scale-95"
           >
             ← Back
           </button>
@@ -87,7 +87,7 @@ export default function Appointments() {
         
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
-            message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            message.includes("✓") ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
           }`}>
             {message}
           </div>
@@ -105,17 +105,17 @@ export default function Appointments() {
           <div className="space-y-4 sm:space-y-6">
             <div className="grid gap-4 sm:gap-6">
               {appointments.map((apt) => (
-                <div key={apt.id} className="bg-white rounded-lg shadow-lg p-4 sm:p-6 border-l-4 border-accent">
+                <div key={apt.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg dark:shadow-gray-900/50 p-4 sm:p-6 border-l-4 border-accent">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
                     <div className="flex-1">
                       <h3 className="text-lg sm:text-xl font-bold text-dark">{apt.doctor_name}</h3>
                       <p className="text-sm sm:text-base text-secondary font-semibold">{apt.specialization}</p>
                     </div>
                     <span className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold self-start ${
-                      apt.status === "scheduled" ? "bg-blue-100 text-blue-700" :
-                      apt.status === "completed" ? "bg-green-100 text-green-700" :
-                      apt.status === "cancelled" ? "bg-red-100 text-red-700" :
-                      "bg-yellow-100 text-yellow-700"
+                      apt.status === "scheduled" ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300" :
+                      apt.status === "completed" ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300" :
+                      apt.status === "cancelled" ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300" :
+                      "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
                     }`}>
                       {apt.status.toUpperCase()}
                     </span>
@@ -123,34 +123,34 @@ export default function Appointments() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-600">📅 Date & Time</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">📅 Date & Time</p>
                       <p className="text-sm sm:text-base font-semibold">{new Date(apt.appointment_date).toLocaleDateString()} at {formatTime12Hour(apt.appointment_time)}</p>
                     </div>
                     <div>
-                      <p className="text-xs sm:text-sm text-gray-600">📝 Reason</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">📝 Reason</p>
                       <p className="text-sm sm:text-base font-semibold">{apt.reason_for_visit || "General checkup"}</p>
                     </div>
                   </div>
 
                   {apt.symptoms && (
                     <div className="mb-4">
-                      <p className="text-xs sm:text-sm text-gray-600">🩹 Symptoms</p>
-                      <p className="text-sm sm:text-base text-gray-700">{apt.symptoms}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">🩹 Symptoms</p>
+                      <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">{apt.symptoms}</p>
                     </div>
                   )}
 
-                  <div className="pt-4 border-t">
+                  <div className="pt-4 border-t dark:border-gray-700">
                     {apt.status === "scheduled" && (
                       <div className="space-y-2 sm:space-y-3">
                         <button
                           onClick={() => navigate(`/patient/book/${apt.doctor_id}`)}
-                          className="w-full px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-xs sm:text-sm active:scale-95"
+                          className="w-full px-3 sm:px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:opacity-90 dark:hover:bg-blue-600 transition font-semibold text-xs sm:text-sm active:scale-95"
                         >
                           📅 Book Another with {apt.doctor_name}
                         </button>
                         <button
                           onClick={() => cancelAppointment(apt.id)}
-                          className="w-full px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-xs sm:text-sm active:scale-95"
+                          className="w-full px-3 sm:px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:opacity-90 dark:hover:bg-red-600 transition font-semibold text-xs sm:text-sm active:scale-95"
                         >
                           ❌ Cancel Appointment
                         </button>
@@ -160,13 +160,13 @@ export default function Appointments() {
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                         <button
                           onClick={() => navigate(`/patient/book/${apt.doctor_id}`)}
-                          className="flex-1 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:opacity-90 transition font-semibold text-xs sm:text-sm active:scale-95"
+                          className="flex-1 px-3 sm:px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-lg hover:opacity-90 dark:hover:bg-green-600 transition font-semibold text-xs sm:text-sm active:scale-95"
                         >
                           📅 Book Follow-up
                         </button>
                         <button
                           onClick={() => navigate(`/patient/doctor/${apt.doctor_id}`)}
-                          className="flex-1 px-3 sm:px-4 py-2 bg-secondary text-white rounded-lg hover:opacity-90 transition font-semibold text-xs sm:text-sm active:scale-95"
+                          className="flex-1 px-3 sm:px-4 py-2 bg-secondary dark:bg-purple-700 text-white rounded-lg hover:opacity-90 dark:hover:bg-purple-600 transition font-semibold text-xs sm:text-sm active:scale-95"
                         >
                           👁️ View Profile
                         </button>
@@ -178,12 +178,12 @@ export default function Appointments() {
             </div>
 
             {/* Book Another Appointment Button */}
-            <div className="bg-gradient-to-r from-accent to-blue-600 rounded-lg p-4 sm:p-6 text-white text-center">
+            <div className="bg-gradient-to-r from-accent to-blue-600 dark:from-purple-800 dark:to-blue-800 rounded-lg p-4 sm:p-6 text-white text-center shadow-lg dark:shadow-gray-900/50">
               <h2 className="text-lg sm:text-xl font-bold mb-2">Need Another Appointment?</h2>
-              <p className="text-sm sm:text-base mb-4">Browse our doctors and book your next appointment</p>
+              <p className="text-sm sm:text-base mb-4 opacity-90">Browse our doctors and book your next appointment</p>
               <button
                 onClick={() => navigate('/patient/browse-doctors')}
-                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-accent rounded-lg hover:opacity-90 transition font-bold text-sm sm:text-base active:scale-95"
+                className="px-6 sm:px-8 py-2.5 sm:py-3 bg-white dark:bg-gray-800 text-accent dark:text-white rounded-lg hover:opacity-90 hover:scale-105 transition-all font-bold text-sm sm:text-base active:scale-95 shadow-md"
               >
                 🔍 Browse All Doctors
               </button>

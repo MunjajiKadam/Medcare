@@ -4,6 +4,7 @@ import './App.css'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./Authcontext/AuthContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 /* ===== Public Pages ===== */
@@ -50,6 +51,8 @@ import AdminHealthRecords from "./pages/admin/HealthRecords";
 import AdminPrescriptions from "./pages/admin/Prescriptions";
 import AdminReviews from "./pages/admin/Reviews";
 import AdminTimeSlots from "./pages/admin/TimeSlots";
+import AdminSettings from "./pages/admin/Settings";
+
 
 /* ===== System Pages ===== */
 import Unauthorized from "./pages/Unauthorized";
@@ -58,10 +61,11 @@ import NotFound from "./pages/NotFound";
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* ================= PUBLIC ================= */}
-          <Route path="/" element={<Home />} />
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* ================= PUBLIC ================= */}
+            <Route path="/" element={<Home />} />
           <Route path="/doctors" element={<AllDoctors />} />
           <Route path="/all-doctors" element={<AllDoctors />} />
           <Route path="/services" element={<Services />} />
@@ -292,14 +296,21 @@ function App() {
                 <AdminTimeSlots />
               </ProtectedRoute>
             }
+          />          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminSettings />
+              </ProtectedRoute>
+            }
           />
-
           {/* ================= SYSTEM ================= */}
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
+    </ThemeProvider>
+  </AuthProvider>
   );
 }
 

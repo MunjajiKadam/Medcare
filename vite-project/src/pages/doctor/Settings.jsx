@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Authcontext/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
+import axios from "../../api/axios";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FormInput from "../../components/FormInput";
@@ -8,10 +10,10 @@ import Spinner from "../../components/Spinner";
 
 export default function DoctorSettings() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [notification, setNotification] = useState(true);
   const [newsletter, setNewsletter] = useState(true);
-  const [theme, setTheme] = useState("light");
   const [message, setMessage] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -42,12 +44,14 @@ export default function DoctorSettings() {
     try {
       setSaveLoading(true);
       console.log("📤 [DOCTOR SETTINGS] Saving doctor preferences...");
-      const settings = {
-        notification,
-        newsletter,
-        theme
-      };
-      console.log("✅ [DOCTOR SETTINGS] Settings saved:", settings);
+      
+      // Save theme to database
+      const response = await axios.put("/doctors/settings", { theme });
+      
+      // Update user data in AuthContext
+      updateUser({ theme });
+      
+      console.log("✅ [DOCTOR SETTINGS] Settings saved successfully");
       setMessage("✓ Settings saved successfully!");
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
@@ -116,7 +120,7 @@ export default function DoctorSettings() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-4 sm:p-6">
+      <div className="min-h-screen bg-background dark:bg-gray-900 p-4 sm:p-6 transition-colors duration-200">
         <div className="max-w-3xl mx-auto">
         <button
           onClick={() => navigate(-1)}
@@ -127,16 +131,16 @@ export default function DoctorSettings() {
         </button>
 
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-dark mb-2">⚙️ Settings</h1>
-          <p className="text-gray-600">Manage your account preferences and security</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-dark dark:text-white mb-2">⚙️ Settings</h1>
+          <p className="text-gray-600 dark:text-gray-300">Manage your account preferences and security</p>
         </div>
 
         {message && (
           <div 
             className={`mb-6 p-4 rounded-lg ${
               message.startsWith("✓") 
-                ? "bg-green-100 text-green-700 border border-green-200" 
-                : "bg-red-100 text-red-700 border border-red-200"
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700" 
+                : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
             }`}
             role="alert"
             aria-live="polite"
@@ -147,13 +151,13 @@ export default function DoctorSettings() {
 
         {/* Account Section */}
         <section className="card mb-6" aria-labelledby="account-heading">
-          <h2 id="account-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="account-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">👤</span> Account Information
           </h2>
           
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
               </label>
               <input
@@ -161,13 +165,13 @@ export default function DoctorSettings() {
                 type="email"
                 value={user?.email || ""}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Full Name
               </label>
               <input
@@ -175,13 +179,13 @@ export default function DoctorSettings() {
                 type="text"
                 value={user?.name || ""}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
 
             <div>
-              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
+              <label htmlFor="role" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Account Type
               </label>
               <input
@@ -189,7 +193,7 @@ export default function DoctorSettings() {
                 type="text"
                 value={user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1) || "Doctor"}
                 disabled
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                 aria-readonly="true"
               />
             </div>
@@ -206,7 +210,7 @@ export default function DoctorSettings() {
 
         {/* Security Section */}
         <section className="card mb-6" aria-labelledby="security-heading">
-          <h2 id="security-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="security-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🔐</span> Security
           </h2>
           
@@ -222,7 +226,7 @@ export default function DoctorSettings() {
             ) : (
               <form 
                 onSubmit={handleChangePassword}
-                className="bg-blue-50 p-4 sm:p-6 rounded-lg border-2 border-blue-200"
+                className="bg-blue-50 dark:bg-blue-900/20 p-4 sm:p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800"
                 aria-labelledby="password-form-heading"
               >
                 <h3 id="password-form-heading" className="sr-only">Change Password Form</h3>
@@ -306,10 +310,10 @@ export default function DoctorSettings() {
               </form>
             )}
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
               <div>
-                <p className="font-semibold text-dark">Two-Factor Authentication</p>
-                <p className="text-sm text-gray-600">Add an extra layer of security</p>
+                <p className="font-semibold text-dark dark:text-white">Two-Factor Authentication</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Add an extra layer of security</p>
               </div>
               <button
                 onClick={() => {
@@ -341,10 +345,10 @@ export default function DoctorSettings() {
           </h2>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
               <div>
-                <p className="font-semibold text-dark">Appointment Notifications</p>
-                <p className="text-sm text-gray-600">Receive alerts about appointments</p>
+                <p className="font-semibold text-dark dark:text-white">Appointment Notifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Receive alerts about appointments</p>
               </div>
               <button
                 onClick={() => setNotification(!notification)}
@@ -359,10 +363,10 @@ export default function DoctorSettings() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
               <div>
-                <p className="font-semibold text-dark">Newsletter</p>
-                <p className="text-sm text-gray-600">Get updates about MedCare</p>
+                <p className="font-semibold text-dark dark:text-white">Newsletter</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Get updates about MedCare</p>
               </div>
               <button
                 onClick={() => setNewsletter(!newsletter)}
@@ -395,30 +399,32 @@ export default function DoctorSettings() {
 
         {/* Appearance */}
         <section className="card mb-6" aria-labelledby="appearance-heading">
-          <h2 id="appearance-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="appearance-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🎨</span> Appearance
           </h2>
           
           <div className="space-y-4">
-            <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 mb-2">
-              Theme
+            <label htmlFor="theme" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Theme Preference
             </label>
             <select
               id="theme"
               value={theme}
               onChange={(e) => setTheme(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white"
+              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-colors bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              aria-label="Select theme preference"
             >
-              <option value="light">Light</option>
-              <option value="dark">Dark (Coming Soon)</option>
-              <option value="auto">Auto (Coming Soon)</option>
+              <option value="light">☀️ Light Theme</option>
+              <option value="dark">🌙 Dark Theme</option>
+              <option value="auto">🔄 Auto (System)</option>
             </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Choose how MedCare appears to you</p>
           </div>
         </section>
 
         {/* Professional Settings (Doctor-specific) */}
         <section className="card mb-6" aria-labelledby="professional-heading">
-          <h2 id="professional-heading" className="text-2xl font-bold text-dark mb-6 flex items-center gap-2">
+          <h2 id="professional-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">🩺</span> Professional Settings
           </h2>
           
@@ -442,14 +448,14 @@ export default function DoctorSettings() {
         </section>
 
         {/* Danger Zone */}
-        <section className="card border-2 border-red-200 bg-red-50" aria-labelledby="danger-heading">
-          <h2 id="danger-heading" className="text-2xl font-bold text-red-700 mb-6 flex items-center gap-2">
+        <section className="card border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20" aria-labelledby="danger-heading">
+          <h2 id="danger-heading" className="text-2xl font-bold text-red-700 dark:text-red-400 mb-6 flex items-center gap-2">
             <span aria-hidden="true">⚠️</span> Danger Zone
           </h2>
           
           <div className="space-y-4">
             <div>
-              <p className="text-gray-700 mb-3">
+              <p className="text-gray-700 dark:text-gray-300 mb-3">
                 Once you logout, you will need to sign in again to access your account.
               </p>
               <button
@@ -460,8 +466,8 @@ export default function DoctorSettings() {
               </button>
             </div>
 
-            <div className="pt-4 border-t-2 border-red-200">
-              <p className="text-gray-700 mb-3">
+            <div className="pt-4 border-t-2 border-red-200 dark:border-red-700">
+              <p className="text-gray-700 dark:text-gray-300 mb-3">
                 Permanently delete your account and all associated data. This action cannot be undone.
               </p>
               <button

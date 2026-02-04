@@ -56,7 +56,7 @@ export const register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: { id: userId, name, email, role }
+      user: { id: userId, name, email, role, theme: 'light' }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -145,7 +145,8 @@ export const login = async (req, res) => {
         name: userData.name,
         email: userData.email,
         role: userData.role,
-        phone: userData.phone
+        phone: userData.phone,
+        theme: userData.theme_preference || 'light'
       }
     });
   } catch (error) {

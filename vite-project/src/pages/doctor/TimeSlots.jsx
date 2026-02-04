@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { timeSlotAPI, availabilityAPI } from "../../api/api";
 import { useAuth } from "../../Authcontext/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { formatTimeRange } from "../../utils/timeFormat";
@@ -9,6 +10,7 @@ import { formatTimeRange } from "../../utils/timeFormat";
 export default function TimeSlots() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme } = useTheme();
   const [timeSlots, setTimeSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -113,13 +115,13 @@ export default function TimeSlots() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-background p-6">
+      <div className="min-h-screen bg-background dark:bg-gray-900 p-6">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <button
               onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-white border-2 border-accent text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
+              className="px-4 py-2 bg-white dark:bg-gray-800 border-2 border-accent text-accent dark:text-accent rounded-lg hover:bg-accent hover:text-white transition font-semibold text-sm"
             >
               ← Back
             </button>
@@ -132,12 +134,12 @@ export default function TimeSlots() {
             </button>
           </div>
 
-          <h1 className="text-3xl font-bold text-dark mb-2">⏰ Manage Time Slots</h1>
-          <p className="text-gray-600 mb-6">Set your weekly availability schedule for appointments</p>
+          <h1 className="text-3xl font-bold text-dark dark:text-white mb-2">⏰ Manage Time Slots</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Set your weekly availability schedule for appointments</p>
 
           {message && (
             <div className={`mb-6 p-4 rounded-lg ${
-              message.includes("✓") ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              message.includes("✓") ? "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300" : "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
             }`}>
               {message}
             </div>
@@ -153,13 +155,13 @@ export default function TimeSlots() {
 
           {/* Time Slots Grid */}
           {loading ? (
-            <div className="bg-white p-8 rounded-lg shadow text-center">
-              <p>Loading time slots...</p>
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
+              <p className="dark:text-gray-300">Loading time slots...</p>
             </div>
           ) : timeSlots.length === 0 ? (
-            <div className="bg-white p-8 rounded-lg shadow text-center">
-              <p className="text-gray-600 mb-4">No time slots added yet</p>
-              <p className="text-sm text-gray-500">Click "Add New Time Slot" to set your availability</p>
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">No time slots added yet</p>
+              <p className="text-sm text-gray-500 dark:text-gray-500">Click "Add New Time Slot" to set your availability</p>
             </div>
           ) : (
             <div className="grid gap-4">
@@ -167,9 +169,9 @@ export default function TimeSlots() {
                 const daySlots = timeSlots.filter(slot => slot.day_of_week === day);
                 
                 return (
-                  <div key={day} className="bg-white p-6 rounded-lg shadow">
+                  <div key={day} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-bold text-dark">{day}</h3>
+                      <h3 className="text-xl font-bold text-dark dark:text-white">{day}</h3>
                       {daySlots.length > 0 && (
                         <span className="text-sm bg-accent text-white px-3 py-1 rounded-full font-semibold">
                           {daySlots.length} slot{daySlots.length !== 1 ? 's' : ''}
@@ -178,21 +180,21 @@ export default function TimeSlots() {
                     </div>
                     
                     {daySlots.length === 0 ? (
-                      <p className="text-gray-500 text-sm">No slots set for this day</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">No slots set for this day</p>
                     ) : (
                       <div className="space-y-3">
                         {daySlots.map((slot, index) => (
                           <div
                             key={slot.id}
-                            className="flex items-center justify-between p-4 bg-background rounded-lg border-l-4 border-accent"
+                            className="flex items-center justify-between p-4 bg-background dark:bg-gray-700 rounded-lg border-l-4 border-accent"
                           >
                             <div className="flex items-center gap-4">
                               <div>
-                                <p className="font-semibold text-dark text-lg">
+                                <p className="font-semibold text-dark dark:text-white text-lg">
                                   🕐 {formatTimeRange(slot.start_time, slot.end_time)}
                                 </p>
                                 <p className={`text-sm ${
-                                  slot.is_available ? "text-green-600" : "text-red-600"
+                                  slot.is_available ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
                                 }`}>
                                   {slot.is_available ? "✓ Available" : "✗ Unavailable"}
                                 </p>
@@ -204,15 +206,15 @@ export default function TimeSlots() {
                                 onClick={() => handleToggleAvailability(slot.id, slot.is_available)}
                                 className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
                                   slot.is_available
-                                    ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                                    ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-800"
+                                    : "bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800"
                                 }`}
                               >
                                 {slot.is_available ? "Disable" : "Enable"}
                               </button>
                               <button
                                 onClick={() => handleDeleteSlot(slot.id)}
-                                className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-semibold text-sm transition"
+                                className="px-4 py-2 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800 font-semibold text-sm transition"
                               >
                                 Delete
                               </button>
@@ -230,7 +232,7 @@ export default function TimeSlots() {
           {/* Add Time Slot Modal */}
           {showAddModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full">
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
                   <div className="flex justify-between items-center mb-2">
                     <h2 className="text-2xl font-bold text-white">Add Time Slot</h2>
@@ -246,13 +248,13 @@ export default function TimeSlots() {
 
                 <form onSubmit={handleAddTimeSlot} className="p-6 space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-dark mb-2">
+                    <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
                       Day of Week
                     </label>
                     <select
                       value={formData.day_of_week}
                       onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:border-accent"
                     >
                       {daysOfWeek.map(day => (
                         <option key={day} value={day}>{day}</option>
@@ -261,27 +263,27 @@ export default function TimeSlots() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-dark mb-2">
+                    <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
                       Start Time
                     </label>
                     <input
                       type="time"
                       value={formData.start_time}
                       onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:border-accent"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-dark mb-2">
+                    <label className="block text-sm font-semibold text-dark dark:text-gray-300 mb-2">
                       End Time
                     </label>
                     <input
                       type="time"
                       value={formData.end_time}
                       onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-accent"
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:border-accent"
                       required
                     />
                   </div>
@@ -294,16 +296,16 @@ export default function TimeSlots() {
                       onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
                       className="w-4 h-4"
                     />
-                    <label htmlFor="is_available" className="text-sm text-dark">
+                    <label htmlFor="is_available" className="text-sm text-dark dark:text-gray-300">
                       Available for appointments
                     </label>
                   </div>
 
-                  <div className="flex gap-3 pt-4 border-t">
+                  <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
                     <button
                       type="button"
                       onClick={() => setShowAddModal(false)}
-                      className="flex-1 py-2 border-2 border-gray-300 text-dark rounded-lg hover:bg-gray-100 transition font-semibold"
+                      className="flex-1 py-2 border-2 border-gray-300 dark:border-gray-600 text-dark dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition font-semibold"
                     >
                       Cancel
                     </button>

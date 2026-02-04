@@ -23,20 +23,42 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Cleanup on window/tab close or refresh
+  // Cleanup on tab/browser close only (not on refresh)
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      // Clear session data when tab/window closes
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    // Mark that the session is active
+    sessionStorage.setItem("sessionActive", "true");
+
+    const handleVisibilityChange = () => {
+      // When user navigates away or closes tab
+      if (document.visibilityState === "hidden") {
+        sessionStorage.setItem("sessionActive", "false");
+      }
     };
 
-    // Add event listener for beforeunload (tab/window close)
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    const handlePageHide = () => {
+      // Clear auth data only on actual tab/browser close
+      // This doesn't fire on refresh, only on close
+      if (sessionStorage.getItem("sessionActive") === "false") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+    };
 
-    // Cleanup event listener on unmount
+    const handleLoad = () => {
+      // Reset session active flag on page load
+      sessionStorage.setItem("sessionActive", "true");
+    };
+
+    // Add event listeners
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", handlePageHide);
+    window.addEventListener("load", handleLoad);
+
+    // Cleanup event listeners
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("load", handleLoad);
     };
   }, []);
 
@@ -114,6 +136,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
   };
 
+  const updateUser = (updatedData) => {
+    const updatedUser = { ...user, ...updatedData };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const isAuthenticated = !!user;
   const userRole = user?.role;
 
@@ -130,6 +158,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated,
     userRole,
     hasRole,
