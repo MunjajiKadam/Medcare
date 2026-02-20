@@ -154,7 +154,18 @@ export default function DoctorSettings() {
           <h2 id="account-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">👤</span> Account Information
           </h2>
-          
+          <div className="flex items-center gap-4 mb-6">
+            <img
+              src={user?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "Doctor") + "&background=random"}
+              alt={user?.name || "Doctor"}
+              className="w-16 h-16 rounded-full object-cover border-2 border-purple-400 bg-gray-100 dark:bg-gray-700"
+              onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "Doctor") + "&background=random"; }}
+            />
+            <div>
+              <div className="font-semibold text-lg text-dark dark:text-white">{user?.name || "Doctor"}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">{user?.email}</div>
+            </div>
+          </div>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">

@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS doctors (
   experience_years INT,
   consultation_fee DECIMAL(10, 2),
   bio TEXT,
+  profile_image VARCHAR(255),
   rating DECIMAL(3, 2) DEFAULT 0,
   total_reviews INT DEFAULT 0,
   availability_status ENUM('available', 'busy', 'on_leave') DEFAULT 'available',
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS patients (
   allergies TEXT,
   emergency_contact VARCHAR(255),
   emergency_phone VARCHAR(20),
+  profile_image VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

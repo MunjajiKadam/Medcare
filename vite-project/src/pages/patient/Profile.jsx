@@ -8,7 +8,7 @@ import Footer from "../../components/Footer";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [healthRecords, setHealthRecords] = useState([]);
@@ -37,6 +37,10 @@ export default function Profile() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -76,6 +80,70 @@ export default function Profile() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Upload image to Cloudinary and return URL
+  const uploadToCloudinary = async (file) => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || !uploadPreset) throw new Error('Cloudinary config missing');
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', uploadPreset);
+    const res = await fetch(url, { method: 'POST', body: fd });
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText);
+    }
+    const data = await res.json();
+    console.log('[Cloudinary] Upload response:', data);
+    return data.secure_url;
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfileImageFile(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleUploadImage = async () => {
+    if (!profileImageFile) return setMessage('No image selected');
+    try {
+      setImageUploading(true);
+      console.log('📤 [PROFILE] Uploading image to Cloudinary...');
+      const url = await uploadToCloudinary(profileImageFile);
+      console.log('✅ [PROFILE] Cloudinary image URL:', url);
+      await patientAPI.updatePersonalInfo({ profileImage: url, name: personalData.name, email: personalData.email, phone: personalData.phone });
+      // Update Auth context so Navbar and other pages show new image
+      updateUser({ profile_image: url });
+      setMessage('✓ Profile image updated');
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      fetchData();
+    } catch (error) {
+      console.error('❌ [PROFILE] Image upload/update error:', error);
+      setMessage('✗ Error uploading image: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (!confirm('Remove profile image?')) return;
+    try {
+      console.log('📤 [PROFILE] Removing profile image...');
+      await patientAPI.updatePersonalInfo({ profileImage: 'DELETE' });
+      // Sync AuthContext
+      updateUser({ profile_image: null });
+      setMessage('✓ Profile image removed');
+      fetchData();
+    } catch (error) {
+      console.error('❌ [PROFILE] Remove image error:', error);
+      setMessage('✗ Error removing image: ' + (error.response?.data?.message || error.message));
+    }
   };
 
   const handlePersonalChange = (e) => {
@@ -224,9 +292,28 @@ Downloaded on: ${new Date().toLocaleString()}
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl dark:shadow-gray-900/70 p-8 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">👤 My Profile</h1>
-              <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
+            <div className="flex items-center gap-6">
+              <img
+                src={profile?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(profile?.name || "User") + "&background=random"}
+                alt={profile?.name || "User"}
+                className="w-20 h-20 rounded-full object-cover border-2 border-purple-400 bg-gray-100 dark:bg-gray-700"
+                onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(profile?.name || "User") + "&background=random"; }}
+              />
+              <div className="flex flex-col ml-2">
+                <input id="profile-file-input" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                <div className="flex items-center gap-2 mt-2">
+                  <label htmlFor="profile-file-input" className="px-3 py-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm cursor-pointer hover:bg-gray-100">Change Photo</label>
+                  <button type="button" onClick={handleUploadImage} disabled={imageUploading || !profileImageFile} className="px-3 py-1 bg-purple-600 text-white rounded text-sm disabled:opacity-60">{imageUploading ? 'Uploading...' : 'Upload'}</button>
+                  <button type="button" onClick={handleRemoveImage} className="px-3 py-1 bg-red-500 text-white rounded text-sm">Remove</button>
+                </div>
+                {profileImagePreview && (
+                  <img src={profileImagePreview} alt="Preview" className="w-16 h-16 rounded-full object-cover mt-2 border" />
+                )}
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">👤 My Profile</h1>
+                <p className="text-gray-600 dark:text-gray-400">{user?.email}</p>
+              </div>
             </div>
             {activeTab === "profile" && (
               <button

@@ -1,11 +1,20 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { executeQuery } from '../config/database.js';
+import cloudinary from 'cloudinary';
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Register User
 export const register = async (req, res) => {
   try {
-    const { name, email, password, role, specialization, experienceYears, consultationFee, licenseNumber } = req.body;
+    const { name, email, password, role, specialization, experienceYears, consultationFee, licenseNumber, profileImage } = req.body;
+    console.log('[REGISTER] Incoming profileImage:', profileImage);
 
     // Validation
     if (!name || !email || !password || !role) {
@@ -28,11 +37,36 @@ export const register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // If profileImage is a URL (from frontend), use it directly. If it's a file, upload to Cloudinary.
+    let profileImageUrl = null;
+    if (profileImage) {
+      // If it looks like a URL, use it directly
+      if (typeof profileImage === 'string' && (profileImage.startsWith('http://') || profileImage.startsWith('https://'))) {
+        console.log('[REGISTER] profileImage is a URL, using directly.');
+        profileImageUrl = profileImage;
+      } else {
+        try {
+          console.log('[REGISTER] Uploading profileImage to Cloudinary...');
+          const uploadResult = await cloudinary.v2.uploader.upload(profileImage, {
+            folder: 'medcare/profiles',
+            resource_type: 'image'
+          });
+          console.log('[REGISTER] Cloudinary upload result:', uploadResult);
+          profileImageUrl = uploadResult.secure_url;
+        } catch (cloudErr) {
+          console.error('[REGISTER] Cloudinary upload error:', cloudErr);
+          return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+        }
+      }
+    }
+    console.log('[REGISTER] Final profileImageUrl to store in DB:', profileImageUrl);
+
     // Create user
     const result = await executeQuery(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hashedPassword, role]
+      'INSERT INTO users (name, email, password, role, profile_image) VALUES (?, ?, ?, ?, ?)',
+      [name, email, hashedPassword, role, profileImageUrl]
     );
+    console.log('[REGISTER] User insert result:', result);
 
     const userId = result.insertId;
 
@@ -56,7 +90,7 @@ export const register = async (req, res) => {
     res.status(201).json({
       message: 'User registered successfully',
       token,
-      user: { id: userId, name, email, role, theme: 'light' }
+      user: { id: userId, name, email, role, profile_image: profileImageUrl, theme: 'light' }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -145,6 +179,7 @@ export const login = async (req, res) => {
         name: userData.name,
         email: userData.email,
         role: userData.role,
+        profile_image: userData.profile_image || null,
         phone: userData.phone,
         theme: userData.theme_preference || 'light'
       }

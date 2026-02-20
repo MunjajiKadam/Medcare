@@ -185,3 +185,16 @@ For support, email support@medcare.com or open an issue in the repository.
 - Built with modern web technologies
 - Designed for scalability and maintainability
 - Focus on user experience and security
+
+
+
+mysql -u root -p -e "USE medcare; INSERT INTO users (role, name, email, password) VALUES ('admin', 'Admin User', 'admin@medcare.com', 'adminpass'); INSERT INTO patients (name, email, user_id) VALUES ('Patient User', 'patient@medcare.com', (SELECT id FROM users WHERE email='patient@medcare.com')); INSERT INTO doctors (name, email, user_id, specialization) VALUES ('Doctor User', 'doctor@medcare.com', (SELECT id FROM users WHERE email='doctor@medcare.com'), 'General');"
+mysql -u root -p -e "SHOW DATABASES;"
+mysql -u root -p -e "USE medcare_db; INSERT INTO users (role, name, email, password) VALUES ('admin', 'Admin User', 'admin@medcare.com', 'adminpass'); INSERT INTO users (role, name, email, password) VALUES ('patient', 'Patient User', 'patient@medcare.com', 'patientpass'); INSERT INTO users (role, name, email, password) VALUES ('doctor', 'Doctor User', 'doctor@medcare.com', 'doctorpass'); INSERT INTO patients (name, email, user_id) VALUES ('Patient User', 'patient@medcare.com', (SELECT id FROM users WHERE email='patient@medcare.com')); INSERT INTO doctors (name, email, user_id, specialization) VALUES ('Doctor User', 'doctor@medcare.com', (SELECT id FROM users WHERE email='doctor@medcare.com'), 'General');"
+mysql -u root -p medcare_db -e "INSERT INTO users (role, name, email, password) VALUES ('admin', 'Admin User', 'admin@medcare.com', 'adminpass'); INSERT INTO users (role, name, email, password) VALUES ('patient', 'Patient User', 'patient@medcare.com', 'patientpass'); INSERT INTO users (role, name, email, password) VALUES ('doctor', 'Doctor User', 'doctor@medcare.com', 'doctorpass'); INSERT INTO patients (name, email, user_id) VALUES ('Patient User', 'patient@medcare.com', (SELECT id FROM users WHERE email='patient@medcare.com')); INSERT INTO doctors (name, email, user_id, specialization) VALUES ('Doctor User', 'doctor@medcare.com', (SELECT id FROM users WHERE email='doctor@medcare.com'), 'General');"
+
+
+
+const adminEmail = 'admin@medcare.com';
+const adminPassword = 'admin123';
+const adminRole = 'admin';

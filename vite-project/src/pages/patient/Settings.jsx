@@ -154,7 +154,18 @@ export default function Settings() {
           <h2 id="account-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span aria-hidden="true">👤</span> Account Information
           </h2>
-          
+          <div className="flex items-center gap-4 mb-6">
+            <img
+              src={user?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"}
+              alt={user?.name || "User"}
+              className="w-16 h-16 rounded-full object-cover border-2 border-green-400 bg-gray-100 dark:bg-gray-700"
+              onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"; }}
+            />
+            <div>
+              <div className="font-semibold text-lg text-dark dark:text-white">{user?.name || "User"}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">{user?.email}</div>
+            </div>
+          </div>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">

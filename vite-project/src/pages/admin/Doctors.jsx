@@ -127,7 +127,15 @@ export default function Doctors() {
               <tbody>
                 {filteredDoctors.map((doctor, idx) => (
                   <tr key={idx} className="border-b dark:border-gray-700 hover:bg-background dark:hover:bg-gray-700 transition">
-                    <td className="px-6 py-4 font-semibold text-dark dark:text-white">{doctor.name || "N/A"}</td>
+                    <td className="px-6 py-4 font-semibold text-dark dark:text-white flex items-center gap-3">
+                      <img
+                        src={doctor.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor.name || "Doctor") + "&background=random"}
+                        alt={doctor.name || "Doctor"}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-purple-400 bg-gray-100 dark:bg-gray-700"
+                        onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor.name || "Doctor") + "&background=random"; }}
+                      />
+                      {doctor.name || "N/A"}
+                    </td>
                     <td className="px-6 py-4 dark:text-gray-300">{doctor.specialization || "N/A"}</td>
                     <td className="px-6 py-4 dark:text-gray-300">{doctor.experience_years || 0} years</td>
                     <td className="px-6 py-4 dark:text-gray-300">${doctor.consultation_fee || 0}</td>
@@ -176,9 +184,17 @@ export default function Doctors() {
             
             <div className="p-6 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Name</label>
-                  <p className="text-dark dark:text-white font-semibold">{selectedDoctor.name || "N/A"}</p>
+                <div className="flex items-center gap-3 mb-2 md:col-span-2">
+                  <img
+                    src={selectedDoctor.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(selectedDoctor.name || "Doctor") + "&background=random"}
+                    alt={selectedDoctor.name || "Doctor"}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-purple-400 bg-gray-100 dark:bg-gray-700"
+                    onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(selectedDoctor.name || "Doctor") + "&background=random"; }}
+                  />
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Name</label>
+                    <p className="text-dark dark:text-white font-semibold">{selectedDoctor.name || "N/A"}</p>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Email</label>

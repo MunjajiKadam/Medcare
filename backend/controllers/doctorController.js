@@ -1,10 +1,18 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { executeQuery } from '../config/database.js';
+import cloudinary from 'cloudinary';
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Get All Doctors
 export const getAllDoctors = async (req, res) => {
   try {
     const doctors = await executeQuery(
-      'SELECT d.id, d.specialization, d.experience_years, d.consultation_fee, d.rating, d.total_reviews, d.availability_status, u.name, u.phone FROM doctors d JOIN users u ON d.user_id = u.id WHERE u.status = ?',
+      'SELECT d.id, d.specialization, d.experience_years, d.consultation_fee, d.rating, d.total_reviews, d.availability_status, u.name, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE u.status = ?',
       ['active']
     );
 
@@ -59,12 +67,53 @@ export const getDoctorProfile = async (req, res) => {
 export const updateDoctorProfile = async (req, res) => {
   try {
     const { id } = req.params;
-    const { specialization, experience_years, consultation_fee, bio, availability_status } = req.body;
+    const { specialization, experience_years, consultation_fee, bio, availability_status, profileImage } = req.body;
+
+    // Handle profile image: upload or delete
+    if (profileImage === 'DELETE') {
+      // Find user_id and set profile_image to NULL
+      const doctorInfo = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [id]);
+      if (doctorInfo.length > 0) {
+        await executeQuery('UPDATE users SET profile_image = NULL WHERE id = ?', [doctorInfo[0].user_id]);
+        console.log('✅ [DOCTOR PROFILE] Profile image removed for doctor id:', id);
+        return res.json({ message: 'Profile image removed' });
+      }
+    }
+
+    // Upload profile image to Cloudinary if provided
+    let profileImageUrl = null;
+    if (profileImage) {
+      try {
+        const uploadResult = await cloudinary.v2.uploader.upload(profileImage, {
+          folder: 'medcare/profiles',
+          resource_type: 'image'
+        });
+        profileImageUrl = uploadResult.secure_url;
+      } catch (cloudErr) {
+        console.error('Cloudinary upload error:', cloudErr);
+        return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+      }
+    }
+
+    // Ensure we don't pass undefined to SQL bind params (use null instead)
+    const safeSpecialization = typeof specialization === 'undefined' ? null : specialization;
+    const safeExperience = typeof experience_years === 'undefined' ? null : experience_years;
+    const safeFee = typeof consultation_fee === 'undefined' ? null : consultation_fee;
+    const safeBio = typeof bio === 'undefined' ? null : bio;
+    const safeAvailability = typeof availability_status === 'undefined' ? null : availability_status;
 
     const result = await executeQuery(
-      'UPDATE doctors SET specialization = ?, experience_years = ?, consultation_fee = ?, bio = ?, availability_status = ? WHERE id = ?',
-      [specialization, experience_years, consultation_fee, bio, availability_status, id]
+      'UPDATE doctors SET specialization = IFNULL(?, specialization), experience_years = IFNULL(?, experience_years), consultation_fee = IFNULL(?, consultation_fee), bio = IFNULL(?, bio), availability_status = IFNULL(?, availability_status) WHERE id = ?',
+      [safeSpecialization, safeExperience, safeFee, safeBio, safeAvailability, id]
     );
+
+    // Update profile image in users table if uploaded
+    if (profileImageUrl) {
+      const doctor = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [id]);
+      if (doctor.length > 0) {
+        await executeQuery('UPDATE users SET profile_image = ? WHERE id = ?', [profileImageUrl, doctor[0].user_id]);
+      }
+    }
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: 'Doctor not found' });

@@ -57,6 +57,7 @@ import AdminSettings from "./pages/admin/Settings";
 /* ===== System Pages ===== */
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
+import PaymentPage from "./pages/Payment";
 
 function App() {
   return (
@@ -70,6 +71,10 @@ function App() {
           <Route path="/all-doctors" element={<AllDoctors />} />
           <Route path="/services" element={<Services />} />
           <Route path="/about" element={<About />} />
+
+
+          {/* ================= PAYMENT ================= */}
+          <Route path="/payment" element={<PaymentPage />} />
 
           {/* ================= AUTH ================= */}
           <Route path="/login" element={<Login />} />

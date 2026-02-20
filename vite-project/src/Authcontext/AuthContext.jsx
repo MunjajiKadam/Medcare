@@ -64,19 +64,24 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, userType) => {
     try {
-      const response = await axios.post("/auth/login", {
+      const response = await axios.post("/auth/login", { 
         email,
         password,
         role: userType,
       });
 
-      const { token, user: userData } = response.data;
+      const { token, user: userData } = response.data; // Ensure profile_image is present (snake_case) for consistent frontend usage
 
-      setUser(userData);
+      // Ensure profile_image is present (snake_case) for consistent frontend usage
+      let normalizedUser = { ...userData };
+      if (userData.profileImage && !userData.profile_image) {
+        normalizedUser.profile_image = userData.profileImage;
+      }
+      setUser(normalizedUser);
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(normalizedUser));
 
-      return userData;
+      return normalizedUser;
     } catch (error) {
       const message = error.response?.data?.message || "Login failed";
       throw new Error(message);
@@ -85,7 +90,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registerData) => {
     try {
-      const { name, email, password, confirmPassword, userType, specialization, experienceYears, consultationFee, licenseNumber } = registerData;
+      const { name, email, password, confirmPassword, userType, specialization, experienceYears, consultationFee, licenseNumber, profileImage } = registerData;
 
       if (password !== confirmPassword) {
         throw new Error("Passwords do not match");
@@ -108,6 +113,11 @@ export const AuthProvider = ({ children }) => {
         requestBody.experienceYears = experienceYears;
         requestBody.consultationFee = consultationFee;
         requestBody.licenseNumber = licenseNumber;
+      }
+
+      // Include profile image (Cloudinary URL) if provided
+      if (profileImage) {
+        requestBody.profileImage = profileImage;
       }
 
       const response = await axios.post("/auth/register", requestBody);

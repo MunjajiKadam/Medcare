@@ -18,6 +18,8 @@ export default function Register() {
     experienceYears: "",
     consultationFee: "",
     licenseNumber: "",
+    profileImage: null,
+    profileImagePreview: null,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -51,21 +53,54 @@ export default function Register() {
     });
   };
 
+  // Store file for upload
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: file,
+        profileImagePreview: URL.createObjectURL(file),
+      }));
+    }
+  };
+
+  // Upload image to Cloudinary and return URL
+  const uploadToCloudinary = async (file) => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || !uploadPreset) throw new Error("Cloudinary config missing");
+    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    try {
+      const res = await fetch(url, { method: "POST", body: formData });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error("[Cloudinary] Upload failed:", errText);
+        throw new Error("Image upload failed: " + errText);
+      }
+      const data = await res.json();
+      console.log("[Cloudinary] Upload response:", data);
+      return data.secure_url;
+    } catch (err) {
+      console.error("[Cloudinary] Upload error:", err);
+      throw err;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
-    
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        // Call real API through AuthContext
-        console.log("📤 [REGISTER PAGE] Attempting registration with data:", {
-          name: formData.name,
-          email: formData.email,
-          userType: formData.userType,
-          specialization: formData.specialization
-        });
-        
+        let imageUrl = "";
+        if (formData.profileImage) {
+          imageUrl = await uploadToCloudinary(formData.profileImage);
+          console.log("[Register] Cloudinary image URL:", imageUrl);
+        }
         const registerData = {
           name: formData.name,
           email: formData.email,
@@ -77,25 +112,30 @@ export default function Register() {
             experienceYears: formData.experienceYears,
             consultationFee: formData.consultationFee,
             licenseNumber: formData.licenseNumber,
-          })
+          }),
         };
-        
-        await register(registerData);
-        console.log("✅ [REGISTER PAGE] Registration successful for email:", formData.email);
+        // Always send profileImage as camelCase for backend compatibility
+        if (imageUrl) registerData.profileImage = imageUrl;
+        console.log("[Register] Registration request payload:", registerData);
+        const regResult = await register(registerData);
+        console.log("[Register] Backend response:", regResult);
+        if (regResult && regResult.profile_image) {
+          console.log("[Register] Final profile_image URL:", regResult.profile_image);
+        } else {
+          console.warn("[Register] No profile_image in backend response.", regResult);
+        }
         setSuccessMessage("✓ Account created! Redirecting...");
-        setFormData({ name: "", email: "", password: "", confirmPassword: "", userType: "patient", specialization: "", experienceYears: "", consultationFee: "", licenseNumber: "" });
+        setFormData({ name: "", email: "", password: "", confirmPassword: "", userType: "patient", specialization: "", experienceYears: "", consultationFee: "", licenseNumber: "", profileImage: null, profileImagePreview: null });
         setErrors({});
-        
-        // Redirect based on role
         setTimeout(() => {
           if (formData.userType === "patient") navigate("/patient/dashboard");
           else if (formData.userType === "doctor") navigate("/doctor/dashboard");
         }, 500);
       } catch (error) {
-        console.error("❌ [REGISTER PAGE] Registration error:", error);
         const errorMsg = error.response?.data?.message || error.message;
         setErrors({ submit: errorMsg });
         setLoading(false);
+        console.error("[Register] Error:", error);
       }
     } else {
       setErrors(newErrors);
@@ -133,6 +173,24 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Profile Image Upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Profile Image (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={loading}
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-lg focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
+            />
+            {formData.profileImagePreview && (
+              <img
+                src={formData.profileImagePreview}
+                alt="Profile Preview"
+                className="mt-2 w-20 h-20 rounded-full object-cover border-2 border-purple-400"
+              />
+            )}
+          </div>
           {/* Full Name */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name</label>

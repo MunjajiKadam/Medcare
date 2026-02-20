@@ -1,4 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import { executeQuery } from '../config/database.js';
+import cloudinary from 'cloudinary';
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Get all patients
 export const getAllPatients = async (req, res) => {
@@ -91,10 +99,10 @@ export const updatePatientProfile = async (req, res) => {
 export const updatePersonalInfo = async (req, res) => {
   try {
     const { id } = req.user;
-    const { name, email, phone } = req.body;
+    const { name, email, phone, profileImage } = req.body;
 
     console.log("📤 [PERSONAL INFO] Updating personal info for user_id:", id);
-    console.log("📊 [PERSONAL INFO] Personal data:", { name, email, phone });
+    console.log("📊 [PERSONAL INFO] Personal data:", { name, email, phone, profileImage });
 
     // Check if email already exists for another user
     if (email) {
@@ -108,9 +116,33 @@ export const updatePersonalInfo = async (req, res) => {
       }
     }
 
+    // Handle profile image: upload, ignore, or delete
+    // If profileImage is the special string 'DELETE', remove the profile image (set NULL)
+    if (profileImage === 'DELETE') {
+      const delRes = await executeQuery('UPDATE users SET profile_image = NULL WHERE id = ?', [id]);
+      if (delRes.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
+      console.log("✅ [PERSONAL INFO] Profile image removed for user_id:", id);
+      return res.json({ message: 'Profile image removed' });
+    }
+
+    // Upload profile image to Cloudinary if provided (profileImage should be a URL or base64)
+    let profileImageUrl = null;
+    if (profileImage) {
+      try {
+        const uploadResult = await cloudinary.v2.uploader.upload(profileImage, {
+          folder: 'medcare/profiles',
+          resource_type: 'image'
+        });
+        profileImageUrl = uploadResult.secure_url;
+      } catch (cloudErr) {
+        console.error('Cloudinary upload error:', cloudErr);
+        return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+      }
+    }
+
     const result = await executeQuery(
-      'UPDATE users SET name = ?, email = ?, phone = ? WHERE id = ?',
-      [name, email, phone, id]
+      'UPDATE users SET name = ?, email = ?, phone = ?, profile_image = IFNULL(?, profile_image) WHERE id = ?',
+      [name, email, phone, profileImageUrl, id]
     );
 
     if (result.affectedRows === 0) {

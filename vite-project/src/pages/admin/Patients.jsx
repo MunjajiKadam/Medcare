@@ -127,7 +127,15 @@ export default function Patients() {
               <tbody>
                 {filteredPatients.map((patient, idx) => (
                   <tr key={idx} className="border-b dark:border-gray-700 hover:bg-background dark:hover:bg-gray-700 transition">
-                    <td className="px-6 py-4 font-semibold text-dark dark:text-white">{patient.name || "N/A"}</td>
+                    <td className="px-6 py-4 font-semibold text-dark dark:text-white flex items-center gap-3">
+                      <img
+                        src={patient.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(patient.name || "Patient") + "&background=random"}
+                        alt={patient.name || "Patient"}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-green-400 bg-gray-100 dark:bg-gray-700"
+                        onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(patient.name || "Patient") + "&background=random"; }}
+                      />
+                      {patient.name || "N/A"}
+                    </td>
                     <td className="px-6 py-4 dark:text-gray-300">{patient.email || "N/A"}</td>
                     <td className="px-6 py-4 dark:text-gray-300">{patient.phone || "N/A"}</td>
                     <td className="px-6 py-4 dark:text-gray-300">{patient.blood_type || "N/A"}</td>
@@ -176,9 +184,17 @@ export default function Patients() {
             
             <div className="p-6 space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Name</label>
-                  <p className="text-dark dark:text-white font-semibold">{selectedPatient.name || "N/A"}</p>
+                <div className="flex items-center gap-3 mb-2 md:col-span-2">
+                  <img
+                    src={selectedPatient.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(selectedPatient.name || "Patient") + "&background=random"}
+                    alt={selectedPatient.name || "Patient"}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-green-400 bg-gray-100 dark:bg-gray-700"
+                    onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(selectedPatient.name || "Patient") + "&background=random"; }}
+                  />
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Name</label>
+                    <p className="text-dark dark:text-white font-semibold">{selectedPatient.name || "N/A"}</p>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Email</label>

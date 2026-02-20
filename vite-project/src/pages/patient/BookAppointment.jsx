@@ -136,9 +136,17 @@ export default function BookAppointment() {
 
       console.log("✅ [BOOK APPOINTMENT] Appointment created successfully!");
       console.log("📦 [BOOK APPOINTMENT] Response data:", response.data);
-      console.log("🎉 [BOOK APPOINTMENT] Appointment ID:", response.data?.appointment?.id);
+      const appointmentId = response.data.appointmentId || response.data?.appointment?.id;
+
+      // If the doctor requires a consultation fee, redirect to payment flow
+      const fee = Number(doctor?.consultation_fee || 0);
+      if (fee > 0 && appointmentId) {
+        console.log("💳 [BOOK APPOINTMENT] Redirecting to payment for appointment:", appointmentId, "amount:", fee);
+        navigate('/payment', { state: { amount: fee, appointmentId, doctorId, selectedDate, selectedTime, reason } });
+        return;
+      }
+
       setConfirmed(true);
-      
       // Delay before allowing next action (2 seconds)
       await new Promise(resolve => setTimeout(resolve, 2000));
     } catch (err) {
@@ -230,7 +238,15 @@ export default function BookAppointment() {
             <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-700 p-6 rounded-xl mb-6 text-left space-y-3 border border-purple-200 dark:border-gray-600">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">👨‍⚕️ Doctor</p>
-                <p className="font-bold text-gray-800 dark:text-white">Dr. {doctor?.name}</p>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={doctor?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"}
+                    alt={doctor?.name || "Doctor"}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white bg-gray-100"
+                    onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"; }}
+                  />
+                  <p className="font-bold text-gray-800 dark:text-white">Dr. {doctor?.name}</p>
+                </div>
               </div>
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">🎯 Specialization</p>
@@ -292,12 +308,18 @@ export default function BookAppointment() {
             {/* Header */}
             <div className="mb-8">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent mb-3">📅 Book an Appointment</h1>
-              <p className="text-gray-700 dark:text-gray-300 font-medium">
-                Dr. {doctor?.name} - {doctor?.specialization}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                💰 Consultation Fee: ${doctor?.consultation_fee}
-              </p>
+              <div className="flex items-center gap-4">
+                <img
+                  src={doctor?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"}
+                  alt={doctor?.name || "Doctor"}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-purple-400 bg-gray-100 dark:bg-gray-700"
+                  onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"; }}
+                />
+                <div>
+                  <p className="text-gray-700 dark:text-gray-300 font-medium">Dr. {doctor?.name} - {doctor?.specialization}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">💰 Consultation Fee: ${doctor?.consultation_fee}</p>
+                </div>
+              </div>
               
               {/* Progress */}
               <div className="flex gap-2 mt-6">

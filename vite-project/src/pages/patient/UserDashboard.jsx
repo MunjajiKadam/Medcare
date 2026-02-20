@@ -84,9 +84,17 @@ export default function Dashboard() {
           </div>
         )}
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-dark mb-2">Welcome Back, {user?.name || 'User'}! 👋</h1>
-        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage your health and appointments</p>
+      <div className="mb-6 sm:mb-8 flex items-center gap-4">
+        <img
+          src={user?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"}
+          alt={user?.name || "User"}
+          className="w-16 h-16 rounded-full object-cover border-2 border-green-400 bg-gray-100 dark:bg-gray-700"
+          onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"; }}
+        />
+        <div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-dark mb-2">Welcome Back, {user?.name || 'User'}! 👋</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Manage your health and appointments</p>
+        </div>
       </div>
 
       {/* Quick Actions */}

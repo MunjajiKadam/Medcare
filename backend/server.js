@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { executeQuery } from './config/database.js';
 
+// Load environment variables early so modules that read process.env work
+dotenv.config();
+
 // Routes
 import authRoutes from './routes/authRoutes.js';
 import appointmentRoutes from './routes/appointmentRoutes.js';
@@ -16,8 +19,8 @@ import consultationNotesRoutes from './routes/consultationNotesRoutes.js';
 import diagnosisRoutes from './routes/diagnosisRoutes.js';
 import availabilityRoutes from './routes/availabilityRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
-
-dotenv.config();
+import paymentRoutes from './routes/paymentRoutes.js';
+import proxyRoutes from './routes/proxyRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +28,17 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Respond to Private Network preflight requests (Chrome PNA)
+app.use((req, res, next) => {
+  try {
+    if (req.headers['access-control-request-private-network']) {
+      res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    }
+  } catch (e) {
+    // ignore
+  }
+  next();
+});
 app.use(cors({
   origin: 'http://localhost:5173', // Frontend URL
   credentials: true
@@ -60,6 +74,9 @@ app.use('/api/time-slots', timeSlotRoutes);
 app.use('/api/consultation-notes', consultationNotesRoutes);
 app.use('/api/diagnoses', diagnosisRoutes);
 app.use('/api/availability', availabilityRoutes);
+
+app.use('/api/payment', paymentRoutes);
+app.use('/api/proxy', proxyRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 // Root endpoint

@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard({ title }) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { theme } = useTheme();
   const [counts, setCounts] = useState({ patients: 0, doctors: 0, appointments: 0, revenue: 0 });
   const [recentAppointments, setRecentAppointments] = useState([]);
@@ -72,13 +72,24 @@ export default function AdminDashboard({ title }) {
         >
           ← Back
         </button>
-        <button
-          onClick={handleLogout}
-          className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
-        >
-          <span>🚪</span>
-          Logout
-        </button>
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2">
+            <img
+              src={user?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "Admin") + "&background=random"}
+              alt={user?.name || "Admin"}
+              className="w-10 h-10 rounded-full object-cover border-2 border-accent bg-gray-100"
+              onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "Admin") + "&background=random"; }}
+            />
+            <div className="text-sm text-dark dark:text-gray-200">{user?.name}</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold text-sm flex items-center gap-2"
+          >
+            <span>🚪</span>
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* Header */}

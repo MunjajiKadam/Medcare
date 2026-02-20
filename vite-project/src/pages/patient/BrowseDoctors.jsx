@@ -140,7 +140,14 @@ export default function BrowseDoctors() {
               >
                 {/* Doctor Header */}
                 <div className="bg-gradient-to-r from-secondary to-blue-600 p-6 text-white text-center group-hover:from-blue-700 group-hover:to-blue-700 transition">
-                  <div className="text-5xl mb-3" role="img" aria-label="Doctor">👨‍⚕️</div>
+                  <div className="mb-3 flex items-center justify-center">
+                    <img
+                      src={doctor?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"}
+                      alt={doctor?.name || "Doctor"}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-white bg-gray-100"
+                      onError={(e) => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(doctor?.name || "Doctor") + "&background=random"; }}
+                    />
+                  </div>
                   <h2 className="text-lg font-bold">Dr. {doctor.name || "N/A"}</h2>
                   <p className="text-sm opacity-90">{doctor.specialization || "N/A"}</p>
                 </div>
