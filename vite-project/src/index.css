@@ -4,6 +4,7 @@
 
 /* Custom Scrollbar */
 @layer utilities {
+
   /* Webkit browsers (Chrome, Safari, Edge) */
   .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
@@ -79,6 +80,7 @@
 
 /* Component Styles */
 @layer components {
+
   /* Button Base */
   .btn {
     @apply px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
@@ -183,12 +185,14 @@
 
 /* Utility Classes */
 @layer utilities {
+
   /* Animations */
   @keyframes fadeIn {
     from {
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -199,15 +203,19 @@
     from {
       transform: translateX(-100%);
     }
+
     to {
       transform: translateX(0);
     }
   }
 
   @keyframes pulse-slow {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.5;
     }
@@ -276,7 +284,8 @@
     @apply text-black bg-white;
   }
 
-  .card, .btn {
+  .card,
+  .btn {
     @apply shadow-none;
   }
 }
@@ -319,4 +328,50 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;
+}
+
+/* Accessibility - Elderly Mode */
+.elderly-mode {
+  font-size: 1.15rem;
+}
+
+.elderly-mode h1 {
+  font-size: 2.25rem !important;
+}
+
+.elderly-mode h2 {
+  font-size: 1.85rem !important;
+}
+
+.elderly-mode h3 {
+  font-size: 1.6rem !important;
+}
+
+.elderly-mode button,
+.elderly-mode a.btn,
+.elderly-mode .btn {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  font-size: 1.1rem !important;
+}
+
+.elderly-mode input,
+.elderly-mode select,
+.elderly-mode textarea {
+  font-size: 1.15rem !important;
+  padding: 0.85rem 1rem !important;
+}
+
+.elderly-mode .card,
+.elderly-mode .bg-white,
+.elderly-mode .bg-gray-800 {
+  border-width: 2px !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.elderly-mode .dark .card,
+.elderly-mode .dark .bg-gray-800 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }

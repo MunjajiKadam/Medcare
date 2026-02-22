@@ -61,6 +61,12 @@ export const appointmentAPI = {
   deleteAppointmentAdmin: (id) => axios.delete(`/appointments/admin/${id}`),
 };
 
+// Payment API calls
+export const paymentAPI = {
+  createOrder: (data) => axios.post('/payment/orders', data),
+  verifyPayment: (data) => axios.post('/payment/verify', data),
+};
+
 // Patient API calls
 export const patientAPI = {
   getAllPatients: () => axios.get('/patients'),

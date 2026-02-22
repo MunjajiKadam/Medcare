@@ -11,7 +11,7 @@ import Spinner from "../../components/Spinner";
 export default function Settings() {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, elderlyMode, toggleElderlyMode } = useTheme();
   const [notification, setNotification] = useState(true);
   const [newsletter, setNewsletter] = useState(true);
   const [message, setMessage] = useState("");
@@ -140,8 +140,8 @@ export default function Settings() {
           {message && (
             <div
               className={`mb-6 p-4 rounded-lg ${message.startsWith("✓")
-                  ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
-                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
+                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+                : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
                 }`}
               role="alert"
               aria-live="polite"
@@ -416,6 +416,35 @@ export default function Settings() {
                   <option value="auto">🔄 Auto (System)</option>
                 </select>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">Choose how MedCare appears to you</p>
+              </div>
+            </div>
+          </section>
+
+          {/* Accessibility */}
+          <section className="card mb-6" aria-labelledby="accessibility-heading">
+            <h2 id="accessibility-heading" className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
+              <span aria-hidden="true">♿</span> Accessibility
+            </h2>
+
+            <div className="space-y-4">
+              <div className="flex items-start sm:items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg gap-4 border-2 border-blue-100 dark:border-blue-800">
+                <div className="flex-1">
+                  <p className="font-bold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                    Elderly Mode (Easier Reading)
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">Increases font sizes and button targets for better visibility</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={elderlyMode}
+                    onChange={toggleElderlyMode}
+                    className="sr-only peer"
+                    aria-label="Enable Elderly Mode"
+                  />
+                  <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 transition-colors"></div>
+                  <div className="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-7"></div>
+                </label>
               </div>
             </div>
           </section>

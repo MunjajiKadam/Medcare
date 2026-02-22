@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, X, Send, Stethoscope, ChevronRight } from 'lucide-react';
+import { MessageSquare, X, Send, Stethoscope, ChevronRight, PhoneCall, Mic, MicOff, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const symptomsMap = {
     'headache': 'General Physician',
     'fever': 'General Physician',
-    'chest pain': 'Cardiologist',
-    'heart': 'Cardiologist',
+    'chest pain': 'EMERGENCY',
+    'heart attack': 'EMERGENCY',
+    'bleeding': 'EMERGENCY',
+    'unconscious': 'EMERGENCY',
+    'stroke': 'EMERGENCY',
+    'difficult breathing': 'EMERGENCY',
+    'shortness of breath': 'EMERGENCY',
     'skin': 'Dermatologist',
     'rash': 'Dermatologist',
     'tooth': 'Dentist',
@@ -30,21 +35,49 @@ const TriageAssistant = () => {
     const [step, setStep] = useState(1);
     const [symptom, setSymptom] = useState('');
     const [recommendation, setRecommendation] = useState(null);
+    const [isListening, setIsListening] = useState(false);
     const navigate = useNavigate();
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Speech recognition is not supported in this browser.");
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setSymptom(transcript);
+        };
+
+        recognition.start();
+    };
 
     const handleTriage = () => {
         const input = symptom.toLowerCase();
         let foundSpecialty = 'General Physician';
+        let isEmergency = false;
 
         for (const [key, value] of Object.entries(symptomsMap)) {
             if (input.includes(key)) {
                 foundSpecialty = value;
+                if (value === 'EMERGENCY') isEmergency = true;
                 break;
             }
         }
 
-        setRecommendation(foundSpecialty);
-        setStep(2);
+        if (isEmergency) {
+            setStep(3); // Emergency Step
+        } else {
+            setRecommendation(foundSpecialty);
+            setStep(2);
+        }
     };
 
     const reset = () => {
@@ -77,26 +110,37 @@ const TriageAssistant = () => {
                             {step === 1 ? (
                                 <div className="space-y-4">
                                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                                        Tell me your symptoms, and I'll suggest the right specialist for you.
+                                        Tell me your symptoms (you can also use the microphone).
                                     </p>
-                                    <div className="relative">
+                                    <div className="relative group">
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent transition text-sm"
+                                            className="w-full pl-4 pr-20 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent transition text-sm"
                                             placeholder="e.g. I have a sharp headache..."
                                             value={symptom}
                                             onChange={(e) => setSymptom(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && handleTriage()}
                                         />
-                                        <button
-                                            onClick={handleTriage}
-                                            className="absolute right-2 top-2 p-1.5 bg-accent text-white rounded-lg hover:opacity-90 transition"
-                                        >
-                                            <Send size={16} />
-                                        </button>
+                                        <div className="absolute right-2 top-2 flex items-center gap-1">
+                                            <button
+                                                onClick={startListening}
+                                                className={`p-1.5 rounded-lg transition ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-300'}`}
+                                                title="Voice Input"
+                                            >
+                                                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                                            </button>
+                                            <button
+                                                onClick={handleTriage}
+                                                className="p-1.5 bg-accent text-white rounded-lg hover:opacity-90 transition shadow-md"
+                                                disabled={!symptom.trim()}
+                                            >
+                                                <Send size={16} />
+                                            </button>
+                                        </div>
                                     </div>
+                                    <p className="text-[10px] text-gray-400 text-center">In case of life-threatening situations, call emergency services immediately.</p>
                                 </div>
-                            ) : (
+                            ) : step === 2 ? (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -124,6 +168,44 @@ const TriageAssistant = () => {
                                             className="text-sm text-gray-500 hover:text-accent transition"
                                         >
                                             Try different symptoms
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="space-y-4 text-center"
+                                >
+                                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto text-red-600 dark:text-red-400 mb-2 animate-pulse">
+                                        <AlertCircle size={32} />
+                                    </div>
+                                    <h3 className="font-bold text-lg text-red-600 dark:text-red-400 underline decoration-2 underline-offset-4">URGENT ALERT</h3>
+                                    <p className="text-sm text-gray-700 dark:text-gray-200 font-bold">
+                                        Your symptoms suggest a potential medical emergency!
+                                    </p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                        Please do not wait. Contact professional help now.
+                                    </p>
+
+                                    <div className="flex flex-col gap-3 mt-4">
+                                        <a
+                                            href="tel:911"
+                                            className="w-full py-4 bg-red-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-700 shadow-lg shadow-red-500/30 transition active:scale-95 text-lg"
+                                        >
+                                            <PhoneCall size={20} /> CALL 911 NOW
+                                        </a>
+                                        <button
+                                            onClick={() => navigate('/patient/browse-doctors?emergency=true')}
+                                            className="w-full py-3 border-2 border-red-600 text-red-600 dark:text-red-400 rounded-xl font-bold hover:bg-red-50 dark:hover:bg-red-900/10 transition active:scale-95"
+                                        >
+                                            Find Nearest Hospital
+                                        </button>
+                                        <button
+                                            onClick={reset}
+                                            className="text-sm text-gray-500 hover:text-accent transition mt-2"
+                                        >
+                                            Go Back
                                         </button>
                                     </div>
                                 </motion.div>

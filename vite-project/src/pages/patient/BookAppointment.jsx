@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { appointmentAPI, doctorAPI, timeSlotAPI } from "../../api/api";
+import { appointmentAPI, doctorAPI, timeSlotAPI, paymentAPI } from "../../api/api";
 import { useTheme } from "../../context/ThemeContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -138,12 +138,54 @@ export default function BookAppointment() {
       console.log("📦 [BOOK APPOINTMENT] Response data:", response.data);
       const appointmentId = response.data.appointmentId || response.data?.appointment?.id;
 
-      // If the doctor requires a consultation fee, redirect to payment flow
+      // If the doctor requires a consultation fee, perform payment inline
       const fee = Number(doctor?.consultation_fee || 0);
       if (fee > 0 && appointmentId) {
-        console.log("💳 [BOOK APPOINTMENT] Redirecting to payment for appointment:", appointmentId, "amount:", fee);
-        navigate('/payment', { state: { amount: fee, appointmentId, doctorId, selectedDate, selectedTime, reason } });
-        return;
+        try {
+          console.log("💳 [BOOK APPOINTMENT] Creating payment order for amount:", fee);
+          const createRes = await paymentAPI.createOrder({ amount: fee });
+          const { order, status: orderStatus } = createRes.data || {};
+          if (orderStatus !== 'success' || !order) throw new Error('Order creation failed');
+
+          const options = {
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+            amount: order.amount,
+            currency: order.currency,
+            name: 'Medcare Payment',
+            description: 'Payment for appointment',
+            order_id: order.id,
+            handler: async function (response) {
+              try {
+                const verifyRes = await paymentAPI.verifyPayment({
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                });
+                const verifyData = verifyRes.data;
+                if (verifyData && verifyData.status === 'success') {
+                  // Update appointment status to scheduled (matches DB enum)
+                  await appointmentAPI.updateAppointment(appointmentId, { status: 'scheduled' });
+                  setConfirmed(true);
+                } else {
+                  throw new Error('Payment verification failed');
+                }
+              } catch (e) {
+                console.error('Payment verification error', e);
+                setError('Payment verification failed. Please contact support.');
+              }
+            },
+            theme: { color: '#3399cc' },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+          return;
+        } catch (err) {
+          console.error('💳 [BOOK APPOINTMENT] Payment flow error:', err);
+          setError('Payment failed. Please try again.');
+          setSubmitting(false);
+          return;
+        }
       }
 
       setConfirmed(true);

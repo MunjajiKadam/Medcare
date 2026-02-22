@@ -20,9 +20,12 @@ const PaymentPage = () => {
   const handlePayment = async () => {
     setLoading(true);
     try {
-      // Call backend to create Razorpay order (use axios baseURL -> http://localhost:5000/api)
-      const createRes = await axios.post('/payment/create-order', { amount: Number(amount) });
-      const { order } = createRes.data;
+      // Call backend to create Razorpay order
+      const createRes = await axios.post('/payment/orders', { amount: Number(amount) });
+      const { order, status } = createRes.data;
+      if (status !== 'success' || !order) {
+        throw new Error('Order creation failed');
+      }
 
       // Razorpay options
       const options = {
@@ -41,10 +44,10 @@ const PaymentPage = () => {
               razorpay_signature: response.razorpay_signature,
             });
             const verifyData = verifyRes.data;
-            if (verifyRes.ok && verifyData.success) {
-              // Mark appointment as confirmed
+            if (verifyData && verifyData.status === 'success') {
+              // Mark appointment as scheduled (DB enum: scheduled, completed, cancelled, no_show)
               if (appointmentId) {
-                await appointmentAPI.updateAppointment(appointmentId, { status: 'confirmed' });
+                await appointmentAPI.updateAppointment(appointmentId, { status: 'scheduled' });
               }
               // Redirect to patient's appointments (booking success)
               navigate('/patient/appointments', { replace: true });

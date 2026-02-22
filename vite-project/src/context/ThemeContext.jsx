@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const { user } = useAuth();
-  
+
   const [theme, setTheme] = useState(() => {
     // Priority: user preference from database > localStorage > default
     if (user?.theme) {
@@ -13,6 +13,10 @@ export const ThemeProvider = ({ children }) => {
     }
     const savedTheme = localStorage.getItem('medcare-theme');
     return savedTheme || 'light';
+  });
+
+  const [elderlyMode, setElderlyMode] = useState(() => {
+    return localStorage.getItem('medcare-elderly-mode') === 'true';
   });
 
   // Update theme when user data changes (e.g., after login)
@@ -24,7 +28,8 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
-    
+
+    // Apply Theme
     const applyTheme = (themeValue) => {
       if (themeValue === 'dark') {
         root.classList.add('dark');
@@ -34,30 +39,35 @@ export const ThemeProvider = ({ children }) => {
     };
 
     if (theme === 'auto') {
-      // Use system preference
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       applyTheme(mediaQuery.matches ? 'dark' : 'light');
-      
-      // Listen for system theme changes
-      const handleChange = (e) => {
-        applyTheme(e.matches ? 'dark' : 'light');
-      };
-      
+      const handleChange = (e) => applyTheme(e.matches ? 'dark' : 'light');
       mediaQuery.addEventListener('change', handleChange);
-      
-      // Cleanup listener
       return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
-      // Apply user-selected theme
       applyTheme(theme);
     }
-    
-    // Save to localStorage as fallback
+
     localStorage.setItem('medcare-theme', theme);
   }, [theme]);
 
+  // Apply Elderly Mode
+  useEffect(() => {
+    const root = document.documentElement;
+    if (elderlyMode) {
+      root.classList.add('elderly-mode');
+    } else {
+      root.classList.remove('elderly-mode');
+    }
+    localStorage.setItem('medcare-elderly-mode', elderlyMode);
+  }, [elderlyMode]);
+
   const toggleTheme = () => {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+  };
+
+  const toggleElderlyMode = () => {
+    setElderlyMode(prev => !prev);
   };
 
   const getEffectiveTheme = () => {
@@ -71,6 +81,8 @@ export const ThemeProvider = ({ children }) => {
     theme,
     setTheme,
     toggleTheme,
+    elderlyMode,
+    toggleElderlyMode,
     isDark: getEffectiveTheme() === 'dark'
   };
 

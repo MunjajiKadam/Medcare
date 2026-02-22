@@ -22,7 +22,7 @@ export const createAppointment = async (req, res, next) => {
 
     const patientRecordId = patient[0].id;
 
-    const doctor = await executeQuery('SELECT id, name FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.id = ?', [doctorId]);
+    const doctor = await executeQuery('SELECT d.id, u.name FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.id = ?', [doctorId]);
     if (doctor.length === 0) {
       return next(new AppError('Doctor not found', 404));
     }
@@ -142,9 +142,13 @@ export const updateAppointment = async (req, res, next) => {
     const { id } = req.params;
     const { status, notes } = req.body;
 
+    // mysql2 throws if bind parameters contain `undefined` — convert undefined to null
+    const safeStatus = typeof status === 'undefined' ? null : status;
+    const safeNotes = typeof notes === 'undefined' ? null : notes;
+
     const result = await executeQuery(
       'UPDATE appointments SET status = IFNULL(?, status), notes = IFNULL(?, notes) WHERE id = ?',
-      [status, notes, id]
+      [safeStatus, safeNotes, id]
     );
 
     if (result.affectedRows === 0) return next(new AppError('Appointment not found', 404));
