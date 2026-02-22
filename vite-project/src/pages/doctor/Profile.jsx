@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { doctorAPI } from "../../api/api";
+import { doctorAPI, timeSlotAPI } from "../../api/api";
+import { formatTime12Hour } from "../../utils/timeFormat";
 import { useAuth } from "../../Authcontext/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -10,6 +11,7 @@ export default function Profile() {
   const { theme } = useTheme();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [upcomingSlots, setUpcomingSlots] = useState([]);
   const [editing, setEditing] = useState(false);
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -41,6 +43,17 @@ export default function Profile() {
           bio: doctorData.bio || "",
           availability_status: doctorData.availability_status || "available",
         });
+      }
+      // fetch upcoming slots (tomorrow)
+      try {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const iso = tomorrow.toISOString().split('T')[0];
+        const slotsRes = await timeSlotAPI.getTimeSlots({ doctor_id: doctorData.id, date: iso });
+        setUpcomingSlots(slotsRes.data.slots || []);
+      } catch (err) {
+        console.warn('Could not load upcoming slots', err);
+        setUpcomingSlots([]);
       }
     } catch (error) {
       console.error("❌ [DOCTOR PROFILE] Error loading profile:", error);
@@ -244,6 +257,20 @@ export default function Profile() {
                   <option value="unavailable">Unavailable</option>
                   <option value="on_leave">On Leave</option>
                 </select>
+              </div>
+
+              {/* Upcoming Slots */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">⏰ Upcoming Slots (Tomorrow)</label>
+                <div className="flex flex-wrap gap-2">
+                  {upcomingSlots.length > 0 ? upcomingSlots.slice(0,8).map((t,idx) => (
+                    <div key={idx} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
+                      {formatTime12Hour(t)} • 30m
+                    </div>
+                  )) : (
+                    <div className="text-sm text-gray-500">No slots available tomorrow</div>
+                  )}
+                </div>
               </div>
 
               {editing && (

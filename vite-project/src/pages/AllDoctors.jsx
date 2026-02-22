@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { doctorAPI } from "../api/api";
+import { doctorAPI, timeSlotAPI } from "../api/api";
+import { formatTime12Hour } from "../utils/timeFormat";
 import { useTheme } from "../context/ThemeContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -13,6 +14,7 @@ export default function AllDoctors() {
   const [selectedRating, setSelectedRating] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [doctors, setDoctors] = useState([]);
+  const [doctorSlots, setDoctorSlots] = useState({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -52,7 +54,24 @@ export default function AllDoctors() {
       console.log("📤 [ALL DOCTORS PAGE] Fetching all doctors from API...");
       const response = await doctorAPI.getAllDoctors();
       console.log("✅ [ALL DOCTORS PAGE] Doctors data received from backend:", response.data);
-      setDoctors(response.data.doctors || response.data || []);
+      const docs = response.data.doctors || response.data || [];
+      setDoctors(docs);
+
+      // Prefetch next-day slots for each doctor (first 3 shown on card)
+      try {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const iso = tomorrow.toISOString().split('T')[0];
+        const slotPromises = docs.map(d =>
+          timeSlotAPI.getTimeSlots({ doctor_id: d.id, date: iso }).then(r => ({ id: d.id, slots: r.data.slots || [] })).catch(() => ({ id: d.id, slots: [] }))
+        );
+        const results = await Promise.all(slotPromises);
+        const map = {};
+        results.forEach(r => { map[r.id] = r.slots; });
+        setDoctorSlots(map);
+      } catch (err) {
+        console.warn('Could not prefetch doctor slots', err);
+      }
     } catch (error) {
       console.error("❌ [ALL DOCTORS PAGE] Error loading doctors:", error);
       setMessage("Error loading doctors: " + error.response?.data?.message);
@@ -238,10 +257,23 @@ export default function AllDoctors() {
                     )}
 
                     {/* Availability */}
-                    <div className="text-sm">
-                      <span className={`inline-block px-3 py-1 rounded-full font-semibold ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>
-                        ✓ Available Today
-                      </span>
+                    <div className="text-sm space-y-2">
+                      <div>
+                        <span className={`inline-block px-3 py-1 rounded-full font-semibold ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                          ✓ Available Tomorrow
+                        </span>
+                      </div>
+                      <div className="mt-2">
+                        {(doctorSlots[doctor.id] || []).slice(0,3).length > 0 ? (
+                          <div className="flex gap-2">
+                            {(doctorSlots[doctor.id] || []).slice(0,3).map((t,i) => (
+                              <div key={i} className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-700 dark:text-gray-200">{formatTime12Hour(t)} • 30m</div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">No slots tomorrow</div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Actions */}

@@ -43,6 +43,12 @@ export default function BookAppointment() {
 
   const nextDates = getNextDates();
 
+  const timeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const [h, m] = timeStr.split(':').map(s => parseInt(s, 10));
+    return (h || 0) * 60 + (m || 0);
+  };
+
   useEffect(() => {
     const fetchDoctor = async () => {
       try {
@@ -435,23 +441,49 @@ export default function BookAppointment() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-                    {timeSlots.map((time, idx) => (
-                      <button
-                        key={`${time}-${idx}`}
-                        onClick={() => {
-                          console.log("🕐 [STEP 2] Time selected:", time);
-                          setSelectedTime(time);
-                        }}
-                        className={`p-4 rounded-xl border-2 transition-all duration-200 font-semibold text-center ${
-                          selectedTime === time
-                            ? "border-purple-600 dark:border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 shadow-lg scale-105"
-                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md"
-                        }`}
-                      >
-                        {formatTime12Hour(time)}
-                      </button>
-                    ))}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm text-gray-600 dark:text-gray-300">Available slots</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-300">{timeSlots.length} slots</div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6">
+                      {timeSlots.map((time, idx) => {
+                        const todayISO = new Date().toISOString().split('T')[0];
+                        const isToday = selectedDate === todayISO;
+                        const now = new Date();
+                        const nowMins = now.getHours() * 60 + now.getMinutes();
+                        const disabled = isToday && timeToMinutes(time) <= nowMins;
+
+                        return (
+                          <button
+                            key={`${time}-${idx}`}
+                            onClick={() => {
+                              if (disabled) return;
+                              console.log("🕐 [STEP 2] Time selected:", time);
+                              setSelectedTime(time);
+                            }}
+                            disabled={disabled}
+                            className={`p-3 rounded-xl border-2 transition-all duration-200 font-semibold text-left flex items-center justify-between space-x-3 ${
+                              selectedTime === time
+                                ? "border-purple-600 dark:border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-600 dark:text-purple-400 shadow-lg scale-105"
+                                : disabled
+                                ? "border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed opacity-60"
+                                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-purple-400 dark:hover:border-purple-500 hover:shadow-md"
+                            }`}
+                          >
+                            <div>
+                              <div className="text-lg font-bold">{formatTime12Hour(time)}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">30 min</div>
+                            </div>
+                            <div className="ml-2">
+                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedTime === time ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                                {disabled ? 'Past' : 'Book'}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 

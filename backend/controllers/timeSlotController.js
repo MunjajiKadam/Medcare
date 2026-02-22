@@ -56,10 +56,49 @@ export const getTimeSlots = async (req, res, next) => {
 
       logger.info(`📅 [TIME SLOT] Fetching slots for doctor ${id} on ${dayOfWeek} (${date})`);
 
-      slots = await executeQuery(
-        'SELECT * FROM doctor_time_slots WHERE doctor_id = ? AND day_of_week = ? AND is_available = TRUE ORDER BY start_time',
-        [id, dayOfWeek]
-      );
+        // Get configured slots for that day
+        const configuredSlots = await executeQuery(
+          'SELECT * FROM doctor_time_slots WHERE doctor_id = ? AND day_of_week = ? AND is_available = TRUE ORDER BY start_time',
+          [id, dayOfWeek]
+        );
+
+        // Helper to parse time strings like HH:MM or HH:MM:SS into minutes since midnight
+        const toMinutes = (timeStr) => {
+          if (!timeStr) return null;
+          const parts = timeStr.split(':');
+          const h = parseInt(parts[0], 10) || 0;
+          const m = parseInt(parts[1], 10) || 0;
+          return h * 60 + m;
+        };
+
+        const minutesToTime = (mins) => {
+          const h = Math.floor(mins / 60);
+          const m = mins % 60;
+          return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        };
+
+        // Fetch already booked appointment times for that doctor on the date
+        const bookedRows = await executeQuery(
+          `SELECT appointment_time FROM appointments WHERE doctor_id = ? AND appointment_date = ? AND status != ?`,
+          [id, date, 'cancelled']
+        );
+        const bookedSet = new Set(bookedRows.map(r => (r.appointment_time || '').toString().slice(0,5)));
+
+        // Build 30-minute intervals from configured slots, excluding booked times
+        const generatedTimes = [];
+        for (const s of configuredSlots) {
+          const startMin = toMinutes(s.start_time);
+          const endMin = toMinutes(s.end_time);
+          if (startMin === null || endMin === null || endMin <= startMin) continue;
+
+          for (let t = startMin; t + 30 <= endMin; t += 30) {
+            const timeStr = minutesToTime(t);
+            if (!bookedSet.has(timeStr)) generatedTimes.push(timeStr);
+          }
+        }
+
+        // Deduplicate and sort
+        slots = Array.from(new Set(generatedTimes)).sort();
     } else {
       slots = await executeQuery(
         'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY day_of_week, start_time',
