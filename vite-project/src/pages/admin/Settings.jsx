@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../Authcontext/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import axios from "../../api/axios";
 import FormInput from "../../components/FormInput";
 import Spinner from "../../components/Spinner";
 
@@ -49,13 +50,13 @@ export default function AdminSettings() {
     try {
       setSaveLoading(true);
       console.log("📤 [ADMIN SETTINGS] Saving admin preferences...");
-      
+
       // TODO: Save settings to database
       // await adminAPI.saveSettings({ theme, systemSettings, etc });
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       console.log("✅ [ADMIN SETTINGS] Settings saved successfully");
       setMessage("✓ Settings saved successfully!");
       setTimeout(() => setMessage(""), 3000);
@@ -70,7 +71,7 @@ export default function AdminSettings() {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
+
     // Validate all fields
     const errors = {};
     const currentError = validatePassword(passwordData.currentPassword);
@@ -92,21 +93,23 @@ export default function AdminSettings() {
     try {
       setSaveLoading(true);
       console.log("📤 [ADMIN SETTINGS] Changing password...");
-      // TODO: Call backend API to change password
-      // await adminAPI.changePassword(passwordData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("✅ [ADMIN SETTINGS] Password changed successfully");
-      setMessage("✓ Password changed successfully!");
+
+      const response = await axios.post("/auth/change-password", {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      });
+
+      console.log("✅ [ADMIN SETTINGS] Password changed successfully:", response.data.message);
+      setMessage("✓ " + (response.data.message || "Password changed successfully!"));
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setPasswordErrors({});
       setShowPasswordForm(false);
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("❌ [ADMIN SETTINGS] Error changing password:", error);
-      setMessage("✗ Error changing password");
+      const errorMessage = error.response?.data?.message || "Error changing password";
+      setMessage("✗ " + errorMessage);
       setTimeout(() => setMessage(""), 3000);
     } finally {
       setSaveLoading(false);
@@ -138,12 +141,11 @@ export default function AdminSettings() {
         </div>
 
         {message && (
-          <div 
-            className={`mb-6 p-4 rounded-lg ${
-              message.startsWith("✓") 
-                ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700" 
-                : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
-            }`}
+          <div
+            className={`mb-6 p-4 rounded-lg ${message.startsWith("✓")
+              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700"
+              : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700"
+              }`}
             role="alert"
           >
             {message}
@@ -155,7 +157,7 @@ export default function AdminSettings() {
           <h2 className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span>👤</span> Account Information
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -188,7 +190,7 @@ export default function AdminSettings() {
           <h2 className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span>🔐</span> Security
           </h2>
-          
+
           <div className="space-y-4">
             {!showPasswordForm ? (
               <button
@@ -198,7 +200,7 @@ export default function AdminSettings() {
                 🔑 Change Password
               </button>
             ) : (
-              <form 
+              <form
                 onSubmit={handleChangePassword}
                 className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800"
               >
@@ -218,7 +220,7 @@ export default function AdminSettings() {
                     placeholder="Enter your current password"
                     required
                   />
-                  
+
                   <FormInput
                     label="New Password"
                     type="password"
@@ -234,7 +236,7 @@ export default function AdminSettings() {
                     placeholder="Enter your new password"
                     required
                   />
-                  
+
                   <FormInput
                     label="Confirm New Password"
                     type="password"
@@ -250,7 +252,7 @@ export default function AdminSettings() {
                     placeholder="Confirm your new password"
                     required
                   />
-                  
+
                   <div className="flex gap-3 pt-2">
                     <button
                       type="button"
@@ -282,7 +284,7 @@ export default function AdminSettings() {
           <h2 className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span>🎨</span> Appearance
           </h2>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -291,35 +293,32 @@ export default function AdminSettings() {
               <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => setTheme('light')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    theme === 'light' 
-                      ? 'border-accent bg-accent/10 dark:bg-accent/20' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${theme === 'light'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
+                    }`}
                 >
                   <div className="text-2xl mb-2">☀️</div>
                   <div className="text-sm font-semibold text-dark dark:text-white">Light</div>
                 </button>
-                
+
                 <button
                   onClick={() => setTheme('dark')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    theme === 'dark' 
-                      ? 'border-accent bg-accent/10 dark:bg-accent/20' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${theme === 'dark'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
+                    }`}
                 >
                   <div className="text-2xl mb-2">🌙</div>
                   <div className="text-sm font-semibold text-dark dark:text-white">Dark</div>
                 </button>
-                
+
                 <button
                   onClick={() => setTheme('auto')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    theme === 'auto' 
-                      ? 'border-accent bg-accent/10 dark:bg-accent/20' 
-                      : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${theme === 'auto'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-accent/50'
+                    }`}
                 >
                   <div className="text-2xl mb-2">💻</div>
                   <div className="text-sm font-semibold text-dark dark:text-white">Auto</div>
@@ -334,7 +333,7 @@ export default function AdminSettings() {
           <h2 className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span>🔔</span> Notifications
           </h2>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-background dark:bg-gray-700 rounded-lg">
               <div>
@@ -343,14 +342,12 @@ export default function AdminSettings() {
               </div>
               <button
                 onClick={() => setNotification(!notification)}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  notification ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                className={`relative w-14 h-8 rounded-full transition-colors ${notification ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    notification ? 'translate-x-6' : ''
-                  }`}
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${notification ? 'translate-x-6' : ''
+                    }`}
                 />
               </button>
             </div>
@@ -362,14 +359,12 @@ export default function AdminSettings() {
               </div>
               <button
                 onClick={() => setEmailNotifications(!emailNotifications)}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  emailNotifications ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                className={`relative w-14 h-8 rounded-full transition-colors ${emailNotifications ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    emailNotifications ? 'translate-x-6' : ''
-                  }`}
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${emailNotifications ? 'translate-x-6' : ''
+                    }`}
                 />
               </button>
             </div>
@@ -381,7 +376,7 @@ export default function AdminSettings() {
           <h2 className="text-2xl font-bold text-dark dark:text-white mb-6 flex items-center gap-2">
             <span>🖥️</span> System Settings
           </h2>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-background dark:bg-gray-700 rounded-lg">
               <div>
@@ -389,15 +384,13 @@ export default function AdminSettings() {
                 <p className="text-sm text-gray-600 dark:text-gray-400">Disable public access to the system</p>
               </div>
               <button
-                onClick={() => setSystemSettings({...systemSettings, maintenanceMode: !systemSettings.maintenanceMode})}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  systemSettings.maintenanceMode ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                onClick={() => setSystemSettings({ ...systemSettings, maintenanceMode: !systemSettings.maintenanceMode })}
+                className={`relative w-14 h-8 rounded-full transition-colors ${systemSettings.maintenanceMode ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    systemSettings.maintenanceMode ? 'translate-x-6' : ''
-                  }`}
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${systemSettings.maintenanceMode ? 'translate-x-6' : ''
+                    }`}
                 />
               </button>
             </div>
@@ -409,14 +402,12 @@ export default function AdminSettings() {
               </div>
               <button
                 onClick={() => setAutoApprove(!autoApprove)}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  autoApprove ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
+                className={`relative w-14 h-8 rounded-full transition-colors ${autoApprove ? 'bg-accent' : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
               >
                 <span
-                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    autoApprove ? 'translate-x-6' : ''
-                  }`}
+                  className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${autoApprove ? 'translate-x-6' : ''
+                    }`}
                 />
               </button>
             </div>
@@ -429,7 +420,7 @@ export default function AdminSettings() {
                 <input
                   type="number"
                   value={systemSettings.maxAppointmentsPerDay}
-                  onChange={(e) => setSystemSettings({...systemSettings, maxAppointmentsPerDay: parseInt(e.target.value)})}
+                  onChange={(e) => setSystemSettings({ ...systemSettings, maxAppointmentsPerDay: parseInt(e.target.value) })}
                   className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:border-accent focus:outline-none"
                   min="1"
                   max="100"
@@ -442,7 +433,7 @@ export default function AdminSettings() {
                 </label>
                 <select
                   value={systemSettings.appointmentDuration}
-                  onChange={(e) => setSystemSettings({...systemSettings, appointmentDuration: parseInt(e.target.value)})}
+                  onChange={(e) => setSystemSettings({ ...systemSettings, appointmentDuration: parseInt(e.target.value) })}
                   className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:border-accent focus:outline-none"
                 >
                   <option value="15">15 minutes</option>
@@ -460,7 +451,7 @@ export default function AdminSettings() {
               <input
                 type="number"
                 value={systemSettings.advanceBookingDays}
-                onChange={(e) => setSystemSettings({...systemSettings, advanceBookingDays: parseInt(e.target.value)})}
+                onChange={(e) => setSystemSettings({ ...systemSettings, advanceBookingDays: parseInt(e.target.value) })}
                 className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-dark dark:text-white focus:border-accent focus:outline-none"
                 min="1"
                 max="90"
@@ -479,7 +470,7 @@ export default function AdminSettings() {
           >
             {saveLoading ? <Spinner size="sm" /> : "💾 Save All Settings"}
           </button>
-          
+
           <button
             onClick={handleLogout}
             className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition font-semibold"

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "../Authcontext/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import NotificationBell from "./NotificationBell";
+import TriageAssistant from "./TriageAssistant";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,7 +11,6 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
 
   const isActive = (path) => location.pathname === path;
 
@@ -43,7 +43,8 @@ export default function Navbar() {
             <Link
               key={link.to}
               to={link.to}
-              className={`transition text-sm lg:text-base ${isActive(link.to) ? "text-accent border-b-2 border-accent" : "hover:text-accent"}`}>
+              className={`transition text-sm lg:text-base ${isActive(link.to) ? "text-accent border-b-2 border-accent" : "hover:text-accent"}`}
+            >
               {link.label}
             </Link>
           ))}
@@ -55,16 +56,14 @@ export default function Navbar() {
             </>
           ) : (
             <div className="flex items-center gap-3 lg:gap-4">
-              {/* Notification Bell */}
               <NotificationBell />
-              {/* Dashboard Button */}
               <Link
                 to={
                   user?.role === "patient"
                     ? "/patient/dashboard"
                     : user?.role === "doctor"
-                    ? "/doctor/dashboard"
-                    : "/admin/dashboard"
+                      ? "/doctor/dashboard"
+                      : "/admin/dashboard"
                 }
                 className="px-3 lg:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-sm lg:text-base"
               >
@@ -72,25 +71,24 @@ export default function Navbar() {
                 <span className="lg:hidden">📊</span>
               </Link>
 
-              {/* User Profile Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="px-3 lg:px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm lg:text-base"
                 >
                   <img
-                    src={user?.profile_image || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"}
+                    src={user?.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || "User")}&background=random`}
                     alt={user?.name || "User"}
                     className="w-8 h-8 rounded-full object-cover border-2 border-accent bg-gray-100 dark:bg-gray-700 mr-2"
-                    onError={e => { e.target.onerror = null; e.target.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(user?.name || "User") + "&background=random"; }}
                   />
                   <span className="hidden lg:inline">{user?.name}</span>
                 </button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg dark:shadow-gray-900/50 z-10">
-                    <Link to={user?.role === "patient" ? "/patient/profile" : user?.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"} className="block px-4 py-2 text-dark hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>Profile</Link>
-                    <Link to={user?.role === "patient" ? "/patient/settings" : user?.role === "doctor" ? "/doctor/settings" : "#"} className="block px-4 py-2 text-dark hover:bg-gray-100" onClick={() => setDropdownOpen(false)}>Settings</Link>
+                    <Link to={user?.role === "patient" ? "/patient/profile" : user?.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setDropdownOpen(false)}>Profile</Link>
+                    {user?.role === 'patient' && <Link to="/patient/health-summary" className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setDropdownOpen(false)}>Health Passport</Link>}
+                    <Link to={user?.role === "patient" ? "/patient/settings" : user?.role === "doctor" ? "/doctor/settings" : "#"} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={() => setDropdownOpen(false)}>Settings</Link>
                     <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 border-t dark:border-gray-600">Logout</button>
                   </div>
                 )}
@@ -106,26 +104,29 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation - Only show for non-logged-in users */}
-      {mobileOpen && !user && (
-        <div className="md:hidden bg-background border-t border-gray-200 p-4 space-y-2">
-          {navLinks.map(link => (
-            <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={`block px-4 py-2 rounded ${isActive(link.to) ? "bg-accent text-white" : "text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>{link.label}</Link>
-          ))}
-          <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-4 py-2 bg-accent text-white rounded text-center hover:opacity-90">Login</Link>
-          <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-4 py-2 border-2 border-accent text-accent rounded text-center hover:bg-accent hover:text-white">Register</Link>
-        </div>
-      )}
-
-      {/* Mobile Navigation - For logged-in users */}
-      {mobileOpen && user && (
+      {/* Mobile Navigation */}
+      {mobileOpen && (
         <div className="md:hidden bg-background dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 p-4 space-y-2">
-          <Link to={user?.role === "patient" ? "/patient/dashboard" : user?.role === "doctor" ? "/doctor/dashboard" : "/admin/dashboard"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 bg-blue-600 text-white rounded text-center font-semibold hover:bg-blue-700">📊 Dashboard</Link>
-          <Link to={user?.role === "patient" ? "/patient/profile" : user?.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">👤 {user?.name} - Profile</Link>
-          <Link to={user?.role === "patient" ? "/patient/settings" : user?.role === "doctor" ? "/doctor/settings" : "#"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">⚙️ Settings</Link>
-          <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="block w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-left">Logout</button>
+          {!user ? (
+            <>
+              {navLinks.map(link => (
+                <Link key={link.to} to={link.to} onClick={() => setMobileOpen(false)} className={`block px-4 py-2 rounded ${isActive(link.to) ? "bg-accent text-white" : "text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`}>{link.label}</Link>
+              ))}
+              <Link to="/login" onClick={() => setMobileOpen(false)} className="block px-4 py-2 bg-accent text-white rounded text-center hover:opacity-90">Login</Link>
+              <Link to="/register" onClick={() => setMobileOpen(false)} className="block px-4 py-2 border-2 border-accent text-accent rounded text-center hover:bg-accent hover:text-white">Register</Link>
+            </>
+          ) : (
+            <>
+              <Link to={user?.role === "patient" ? "/patient/dashboard" : user?.role === "doctor" ? "/doctor/dashboard" : "/admin/dashboard"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 bg-blue-600 text-white rounded text-center font-semibold hover:bg-blue-700">📊 Dashboard</Link>
+              <Link to={user?.role === "patient" ? "/patient/profile" : user?.role === "doctor" ? "/doctor/profile" : "/admin/dashboard"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">👤 Profile</Link>
+              {user?.role === 'patient' && <Link to="/patient/health-summary" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">🏥 Health Passport</Link>}
+              <Link to={user?.role === "patient" ? "/patient/settings" : user?.role === "doctor" ? "/doctor/settings" : "#"} onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-dark dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">⚙️ Settings</Link>
+              <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="block w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-left">Logout</button>
+            </>
+          )}
         </div>
       )}
+      {user?.role === 'patient' && <TriageAssistant />}
     </nav>
   );
 }

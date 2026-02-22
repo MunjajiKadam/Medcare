@@ -88,7 +88,7 @@ export default function DoctorDashboard({ title }) {
               {doctorProfile?.name ? `Dr. ${doctorProfile.name}'s Dashboard` : 'Doctor Dashboard'}
             </h1>
             <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-              {doctorProfile?.specialization || 'Physician'} 
+              {doctorProfile?.specialization || 'Physician'}
               {doctorProfile?.experience_years ? ` | ${doctorProfile.experience_years}+ years experience` : ''}
             </p>
           </div>
@@ -121,16 +121,30 @@ export default function DoctorDashboard({ title }) {
                       <div className="flex items-center gap-3 sm:gap-4 flex-1">
                         <div className="text-xl sm:text-2xl">👤</div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">{apt.patient_name || 'Patient'}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate flex items-center gap-2">
+                            {apt.patient_name || 'Patient'}
+                            {apt.is_virtual && <span className="bg-blue-100 text-blue-600 text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1"><Video size={10} /> VIRTUAL</span>}
+                          </p>
                           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">{apt.reason_for_visit || 'Consultation'}</p>
                         </div>
                       </div>
                       <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-1">
-                        <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{formatTime12Hour(apt.appointment_time)}</p>
-                        <span className={`text-xs px-2 py-1 rounded inline-block ${
-                          apt.status === "completed" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                        }`}>
-                          {apt.status}
+                        <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base flex items-center gap-1">
+                          <Clock size={14} className="text-gray-400" /> {formatTime12Hour(apt.appointment_time)}
+                        </p>
+                        {apt.is_virtual && apt.meeting_link && (
+                          <a
+                            href={apt.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mr-2 text-xs bg-green-600 text-white px-3 py-1 rounded-lg flex items-center gap-1 hover:bg-green-700 transition"
+                          >
+                            <Video size={12} /> Join Meeting
+                          </a>
+                        )}
+                        <span className={`text-xs px-2 py-1 rounded inline-block ${apt.status === "completed" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                          }`}>
+                          {apt.status.toUpperCase()}
                         </span>
                       </div>
                     </div>
@@ -147,20 +161,18 @@ export default function DoctorDashboard({ title }) {
             {/* Availability Status */}
             <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Availability Status</h2>
-              <div className={`p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 ${
-                availabilityStatus === 'available' ? 'border-green-500' :
-                availabilityStatus === 'busy' ? 'border-yellow-500' : 'border-red-500'
-              }`}>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Status</p>
-                <p className={`font-semibold text-sm sm:text-base ${
-                  availabilityStatus === 'available' ? 'text-green-600 dark:text-green-400' :
-                  availabilityStatus === 'busy' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
+              <div className={`p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 ${availabilityStatus === 'available' ? 'border-green-500' :
+                  availabilityStatus === 'busy' ? 'border-yellow-500' : 'border-red-500'
                 }`}>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Status</p>
+                <p className={`font-semibold text-sm sm:text-base ${availabilityStatus === 'available' ? 'text-green-600 dark:text-green-400' :
+                    availabilityStatus === 'busy' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
+                  }`}>
                   {availabilityStatus === 'available' && '🟢 Online & Accepting'}
                   {availabilityStatus === 'busy' && '🟡 Busy'}
                   {availabilityStatus === 'on_leave' && '🔴 On Leave'}
                 </p>
-                <button 
+                <button
                   onClick={() => setAvailabilityModal(true)}
                   className="text-xs text-purple-600 dark:text-purple-400 mt-2 font-semibold hover:underline"
                 >
@@ -185,7 +197,7 @@ export default function DoctorDashboard({ title }) {
           </div>
 
           {/* Availability Modal */}
-          <AvailabilityModal 
+          <AvailabilityModal
             isOpen={availabilityModal}
             onClose={() => setAvailabilityModal(false)}
             onSuccess={async (updatedStatus) => {

@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import { executeQuery } from '../config/database.js';
 import cloudinary from 'cloudinary';
+import AppError from '../utils/AppError.js';
+import logger from '../utils/logger.js';
+
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -9,22 +10,21 @@ cloudinary.v2.config({
 });
 
 // Get All Doctors
-export const getAllDoctors = async (req, res) => {
+export const getAllDoctors = async (req, res, next) => {
   try {
     const doctors = await executeQuery(
       'SELECT d.id, d.specialization, d.experience_years, d.consultation_fee, d.rating, d.total_reviews, d.availability_status, u.name, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE u.status = ?',
       ['active']
     );
 
-    res.json({ doctors });
+    res.json({ status: 'success', doctors });
   } catch (error) {
-    console.error('Get doctors error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get Doctor By ID
-export const getDoctorById = async (req, res) => {
+export const getDoctorById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const doctor = await executeQuery(
@@ -33,18 +33,17 @@ export const getDoctorById = async (req, res) => {
     );
 
     if (doctor.length === 0) {
-      return res.status(404).json({ message: 'Doctor not found' });
+      return next(new AppError('Doctor not found', 404));
     }
 
-    res.json({ doctor: doctor[0] });
+    res.json({ status: 'success', doctor: doctor[0] });
   } catch (error) {
-    console.error('Get doctor error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get Doctor Profile (Protected)
-export const getDoctorProfile = async (req, res) => {
+export const getDoctorProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
     const doctor = await executeQuery(
@@ -53,30 +52,30 @@ export const getDoctorProfile = async (req, res) => {
     );
 
     if (doctor.length === 0) {
-      return res.status(404).json({ message: 'Doctor profile not found' });
+      return next(new AppError('Doctor profile not found', 404));
     }
 
-    res.json({ doctor: doctor[0] });
+    res.json({ status: 'success', doctor: doctor[0] });
   } catch (error) {
-    console.error('Get doctor profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update Doctor Profile (Protected)
-export const updateDoctorProfile = async (req, res) => {
+export const updateDoctorProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { specialization, experience_years, consultation_fee, bio, availability_status, profileImage } = req.body;
 
-    // Handle profile image: upload or delete
+    logger.info(`📤 [DOCTOR PROFILE] Updating info for doctor ID: ${id}`);
+
+    // Handle profile image removal
     if (profileImage === 'DELETE') {
-      // Find user_id and set profile_image to NULL
       const doctorInfo = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [id]);
       if (doctorInfo.length > 0) {
         await executeQuery('UPDATE users SET profile_image = NULL WHERE id = ?', [doctorInfo[0].user_id]);
-        console.log('✅ [DOCTOR PROFILE] Profile image removed for doctor id:', id);
-        return res.json({ message: 'Profile image removed' });
+        logger.info(`✅ [DOCTOR PROFILE] Profile image removed for doctor ID: ${id}`);
+        return res.json({ status: 'success', message: 'Profile image removed' });
       }
     }
 
@@ -90,17 +89,17 @@ export const updateDoctorProfile = async (req, res) => {
         });
         profileImageUrl = uploadResult.secure_url;
       } catch (cloudErr) {
-        console.error('Cloudinary upload error:', cloudErr);
-        return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+        logger.error(`❌ [DOCTOR PROFILE] Cloudinary upload error: ${cloudErr.message}`);
+        return next(new AppError('Profile image upload failed', 500));
       }
     }
 
-    // Ensure we don't pass undefined to SQL bind params (use null instead)
-    const safeSpecialization = typeof specialization === 'undefined' ? null : specialization;
-    const safeExperience = typeof experience_years === 'undefined' ? null : experience_years;
-    const safeFee = typeof consultation_fee === 'undefined' ? null : consultation_fee;
-    const safeBio = typeof bio === 'undefined' ? null : bio;
-    const safeAvailability = typeof availability_status === 'undefined' ? null : availability_status;
+    // Ensure safe parameters for SQL bind
+    const safeSpecialization = specialization === undefined ? null : specialization;
+    const safeExperience = experience_years === undefined ? null : experience_years;
+    const safeFee = consultation_fee === undefined ? null : consultation_fee;
+    const safeBio = bio === undefined ? null : bio;
+    const safeAvailability = availability_status === undefined ? null : availability_status;
 
     const result = await executeQuery(
       'UPDATE doctors SET specialization = IFNULL(?, specialization), experience_years = IFNULL(?, experience_years), consultation_fee = IFNULL(?, consultation_fee), bio = IFNULL(?, bio), availability_status = IFNULL(?, availability_status) WHERE id = ?',
@@ -116,18 +115,18 @@ export const updateDoctorProfile = async (req, res) => {
     }
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Doctor not found' });
+      return next(new AppError('Doctor not found', 404));
     }
 
-    res.json({ message: 'Doctor profile updated successfully' });
+    logger.info(`✅ [DOCTOR PROFILE] Information updated for doctor ID: ${id}`);
+    res.json({ status: 'success', message: 'Doctor profile updated successfully' });
   } catch (error) {
-    console.error('Update doctor profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get Doctors By Specialization
-export const getDoctorsBySpecialization = async (req, res) => {
+export const getDoctorsBySpecialization = async (req, res, next) => {
   try {
     const { specialization } = req.params;
     const doctors = await executeQuery(
@@ -135,15 +134,14 @@ export const getDoctorsBySpecialization = async (req, res) => {
       [specialization, 'active']
     );
 
-    res.json({ doctors });
+    res.json({ status: 'success', doctors });
   } catch (error) {
-    console.error('Get doctors by specialization error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get Doctor Reviews
-export const getDoctorReviews = async (req, res) => {
+export const getDoctorReviews = async (req, res, next) => {
   try {
     const { id } = req.params;
     const reviews = await executeQuery(
@@ -151,17 +149,16 @@ export const getDoctorReviews = async (req, res) => {
       [id]
     );
 
-    res.json({ reviews });
+    res.json({ status: 'success', reviews });
   } catch (error) {
-    console.error('Get doctor reviews error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get Current Doctor Profile (Protected)
-export const getCurrentDoctorProfile = async (req, res) => {
+export const getCurrentDoctorProfile = async (req, res, next) => {
   try {
-    const userId = req.user.id; // Get user ID from the auth middleware
+    const userId = req.user.id;
 
     let doctor = await executeQuery(
       'SELECT d.*, u.name, u.email, u.phone, u.profile_image FROM doctors d JOIN users u ON d.user_id = u.id WHERE d.user_id = ?',
@@ -169,8 +166,8 @@ export const getCurrentDoctorProfile = async (req, res) => {
     );
 
     if (doctor.length === 0) {
-      // Auto-create doctor record
-      const result = await executeQuery(
+      logger.warn(`⚠️ [DOCTOR] Auto-creating missing doctor record for user: ${userId}`);
+      await executeQuery(
         'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
         [userId, 'General Physician', `LIC-${Date.now()}`, 0, 50]
       );
@@ -180,26 +177,23 @@ export const getCurrentDoctorProfile = async (req, res) => {
       );
     }
 
-    res.json(doctor[0]);
+    res.json({ status: 'success', ...doctor[0] });
   } catch (error) {
-    console.error('Get current doctor profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update doctor settings (theme, notifications, etc.)
-export const updateDoctorSettings = async (req, res) => {
+export const updateDoctorSettings = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { theme } = req.body;
 
-    console.log("📤 [DOCTOR SETTINGS] Updating settings for user_id:", id);
-    console.log("📊 [DOCTOR SETTINGS] Settings data:", { theme });
+    logger.info(`📤 [DOCTOR SETTINGS] Updating settings for user ID: ${id}`);
 
-    // Validate theme value
     const validThemes = ['light', 'dark', 'auto'];
     if (theme && !validThemes.includes(theme)) {
-      return res.status(400).json({ message: 'Invalid theme value. Must be light, dark, or auto' });
+      return next(new AppError('Invalid theme value. Must be light, dark, or auto', 400));
     }
 
     const result = await executeQuery(
@@ -208,56 +202,46 @@ export const updateDoctorSettings = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      console.error("❌ [DOCTOR SETTINGS] User not found for user_id:", id);
-      return res.status(404).json({ message: 'User not found' });
+      return next(new AppError('User not found', 404));
     }
 
-    console.log("✅ [DOCTOR SETTINGS] Settings updated successfully for user_id:", id);
-    res.json({ 
+    logger.info(`✅ [DOCTOR SETTINGS] Theme updated for user ID: ${id}`);
+    res.json({
+      status: 'success',
       message: 'Settings updated successfully',
-      theme 
+      theme
     });
   } catch (error) {
-    console.error('❌ [DOCTOR SETTINGS] Update settings error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Delete doctor (Admin only)
-export const deleteDoctor = async (req, res) => {
+export const deleteDoctor = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { role } = req.user;
 
     if (role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
+      return next(new AppError('Access denied: Admin only', 403));
     }
 
-    console.log("📤 [DELETE DOCTOR] Deleting doctor ID:", id);
+    logger.info(`🗑️ [ADMIN] Attempting to delete doctor record: ${id}`);
 
-    // First get the user_id associated with this doctor
     const doctor = await executeQuery('SELECT user_id FROM doctors WHERE id = ?', [id]);
     if (doctor.length === 0) {
-      console.error("❌ [DELETE DOCTOR] Doctor not found:", id);
-      return res.status(404).json({ message: 'Doctor not found' });
+      return next(new AppError('Doctor not found', 404));
     }
 
     const userId = doctor[0].user_id;
 
-    // Delete doctor record (cascade will handle related records like appointments, reviews, etc.)
-    const result = await executeQuery('DELETE FROM doctors WHERE id = ?', [id]);
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Doctor not found' });
-    }
-
-    // Delete user account
+    // Delete doctor record and associated user
+    await executeQuery('DELETE FROM doctors WHERE id = ?', [id]);
     await executeQuery('DELETE FROM users WHERE id = ?', [userId]);
 
-    console.log("✅ [DELETE DOCTOR] Doctor deleted successfully:", id);
-    res.json({ message: 'Doctor deleted successfully' });
+    logger.info(`✅ [ADMIN] Doctor ${id} and user ${userId} deleted successfully`);
+    res.json({ status: 'success', message: 'Doctor deleted successfully' });
   } catch (error) {
-    console.error('❌ [DELETE DOCTOR] Delete doctor error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };

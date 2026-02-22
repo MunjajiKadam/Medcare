@@ -1,9 +1,10 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { executeQuery } from '../config/database.js';
 import cloudinary from 'cloudinary';
+import AppError from '../utils/AppError.js';
+import logger from '../utils/logger.js';
+
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -11,27 +12,27 @@ cloudinary.v2.config({
 });
 
 // Register User
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { name, email, password, role, specialization, experienceYears, consultationFee, licenseNumber, profileImage } = req.body;
-    console.log('[REGISTER] Incoming profileImage:', profileImage);
+    logger.info(`📝 [REGISTER] New registration attempt: ${email} as ${role}`);
 
     // Validation
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return next(new AppError('All fields are required', 400));
     }
 
     // Doctor-specific validation
     if (role === 'doctor') {
       if (!specialization || !licenseNumber || !experienceYears || !consultationFee) {
-        return res.status(400).json({ message: 'All doctor fields are required (specialization, license number, experience, and consultation fee)' });
+        return next(new AppError('All doctor fields are required (specialization, license number, experience, and consultation fee)', 400));
       }
     }
 
     // Check if user already exists
     const existingUser = await executeQuery('SELECT id FROM users WHERE email = ?', [email]);
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'User already exists' });
+      return next(new AppError('User already exists', 400));
     }
 
     // Hash password
@@ -40,33 +41,27 @@ export const register = async (req, res) => {
     // If profileImage is a URL (from frontend), use it directly. If it's a file, upload to Cloudinary.
     let profileImageUrl = null;
     if (profileImage) {
-      // If it looks like a URL, use it directly
       if (typeof profileImage === 'string' && (profileImage.startsWith('http://') || profileImage.startsWith('https://'))) {
-        console.log('[REGISTER] profileImage is a URL, using directly.');
         profileImageUrl = profileImage;
       } else {
         try {
-          console.log('[REGISTER] Uploading profileImage to Cloudinary...');
           const uploadResult = await cloudinary.v2.uploader.upload(profileImage, {
             folder: 'medcare/profiles',
             resource_type: 'image'
           });
-          console.log('[REGISTER] Cloudinary upload result:', uploadResult);
           profileImageUrl = uploadResult.secure_url;
         } catch (cloudErr) {
-          console.error('[REGISTER] Cloudinary upload error:', cloudErr);
-          return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+          logger.error(`❌ [REGISTER] Cloudinary upload error: ${cloudErr.message}`);
+          return next(new AppError('Profile image upload failed', 500));
         }
       }
     }
-    console.log('[REGISTER] Final profileImageUrl to store in DB:', profileImageUrl);
 
     // Create user
     const result = await executeQuery(
       'INSERT INTO users (name, email, password, role, profile_image) VALUES (?, ?, ?, ?, ?)',
       [name, email, hashedPassword, role, profileImageUrl]
     );
-    console.log('[REGISTER] User insert result:', result);
 
     const userId = result.insertId;
 
@@ -75,7 +70,7 @@ export const register = async (req, res) => {
       await executeQuery('INSERT INTO patients (user_id) VALUES (?)', [userId]);
     } else if (role === 'doctor') {
       await executeQuery(
-        'INSERT INTO doctors (user_id, specialization, experience_years, consultation_fee, license_number) VALUES (?, ?, ?, ?, ?)', 
+        'INSERT INTO doctors (user_id, specialization, experience_years, consultation_fee, license_number) VALUES (?, ?, ?, ?, ?)',
         [userId, specialization, experienceYears, consultationFee, licenseNumber]
       );
     }
@@ -87,78 +82,68 @@ export const register = async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    logger.info(`✅ [REGISTER] User registered successfully: ${email}`);
+
     res.status(201).json({
+      status: 'success',
       message: 'User registered successfully',
       token,
       user: { id: userId, name, email, role, profile_image: profileImageUrl, theme: 'light' }
     });
   } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Login User
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password, role } = req.body;
-
-    console.log('🔐 [LOGIN] Attempting login:', { email, role });
+    logger.info(`🔐 [LOGIN] Attempting login: ${email} as ${role}`);
 
     // Validation
     if (!email || !password || !role) {
-      return res.status(400).json({ message: 'Email, password, and role are required' });
+      return next(new AppError('Email, password, and role are required', 400));
     }
 
     // Find user by email and role
     const user = await executeQuery('SELECT * FROM users WHERE email = ? AND role = ?', [email, role]);
 
     if (user.length === 0) {
-      console.log('❌ [LOGIN] User not found:', { email, role });
-      return res.status(401).json({ message: 'Invalid credentials' });
+      logger.warn(`❌ [LOGIN] User not found: ${email}`);
+      return next(new AppError('Invalid credentials', 401));
     }
 
     const userData = user[0];
-    console.log('✅ [LOGIN] User found:', { id: userData.id, email: userData.email, role: userData.role });
 
     // Compare password
     const isPasswordValid = await bcrypt.compare(password, userData.password);
     if (!isPasswordValid) {
-      console.log('❌ [LOGIN] Invalid password');
-      return res.status(401).json({ message: 'Invalid credentials' });
+      logger.warn(`❌ [LOGIN] Invalid password for: ${email}`);
+      return next(new AppError('Invalid credentials', 401));
     }
 
     // Check user status
     if (userData.status !== 'active') {
-      console.log('❌ [LOGIN] User account not active');
-      return res.status(403).json({ message: 'User account is not active' });
+      logger.warn(`❌ [LOGIN] Inactive account access attempt: ${email}`);
+      return next(new AppError('User account is not active', 403));
     }
 
-    // For doctors, ensure doctor record exists
+    // Role-specific record sync (auto-repairing missing records)
     if (role === 'doctor') {
       const doctorCheck = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [userData.id]);
-      console.log('👨‍⚕️ [LOGIN] Doctor record check:', doctorCheck.length > 0 ? 'EXISTS' : 'MISSING');
-      
       if (doctorCheck.length === 0) {
-        console.log('⚠️ [LOGIN] Creating missing doctor record for user_id:', userData.id);
-        // Auto-create doctor record with default values
+        logger.warn(`⚠️ [LOGIN] Missing doctor record for user: ${userData.id}. Auto-creating...`);
         await executeQuery(
           'INSERT INTO doctors (user_id, specialization, license_number, experience_years, consultation_fee) VALUES (?, ?, ?, ?, ?)',
           [userData.id, 'General Physician', `LIC-${userData.id}-${Date.now()}`, 0, 50.00]
         );
-        console.log('✅ [LOGIN] Doctor record created');
       }
-    }
-
-    // For patients, ensure patient record exists
-    if (role === 'patient') {
+    } else if (role === 'patient') {
       const patientCheck = await executeQuery('SELECT id FROM patients WHERE user_id = ?', [userData.id]);
-      console.log('👤 [LOGIN] Patient record check:', patientCheck.length > 0 ? 'EXISTS' : 'MISSING');
-      
       if (patientCheck.length === 0) {
-        console.log('⚠️ [LOGIN] Creating missing patient record for user_id:', userData.id);
+        logger.warn(`⚠️ [LOGIN] Missing patient record for user: ${userData.id}. Auto-creating...`);
         await executeQuery('INSERT INTO patients (user_id) VALUES (?)', [userData.id]);
-        console.log('✅ [LOGIN] Patient record created');
       }
     }
 
@@ -169,9 +154,10 @@ export const login = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    console.log('✅ [LOGIN] Login successful for:', userData.email);
+    logger.info(`✅ [LOGIN] Successful login: ${email}`);
 
     res.json({
+      status: 'success',
       message: 'Login successful',
       token,
       user: {
@@ -185,61 +171,49 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ [LOGIN] Login error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Logout User
 export const logout = (req, res) => {
-  try {
-    // JWT logout is typically handled on the frontend by removing the token
-    res.json({ message: 'Logout successful' });
-  } catch (error) {
-    res.status(500).json({ message: 'Logout failed', error: error.message });
-  }
+  res.json({ status: 'success', message: 'Logout successful' });
 };
 
 // Change Password
-export const changePassword = async (req, res) => {
+export const changePassword = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { currentPassword, newPassword, confirmPassword } = req.body;
 
-    // Validate inputs
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ message: 'All fields are required' });
+      return next(new AppError('All fields are required', 400));
     }
 
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({ message: 'New passwords do not match' });
+      return next(new AppError('New passwords do not match', 400));
     }
 
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return next(new AppError('Password must be at least 6 characters', 400));
     }
 
-    // Get user
     const user = await executeQuery('SELECT password FROM users WHERE id = ?', [id]);
     if (user.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return next(new AppError('User not found', 404));
     }
 
-    // Verify current password
     const isPasswordValid = await bcrypt.compare(currentPassword, user[0].password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: 'Current password is incorrect' });
+      return next(new AppError('Current password is incorrect', 401));
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
     await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
 
-    res.json({ message: 'Password changed successfully' });
+    logger.info(`🔐 [PASSWORD] User ${id} changed password successfully`);
+    res.json({ status: 'success', message: 'Password changed successfully' });
   } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };

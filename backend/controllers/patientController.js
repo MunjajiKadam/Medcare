@@ -1,7 +1,8 @@
-import dotenv from 'dotenv';
-dotenv.config();
 import { executeQuery } from '../config/database.js';
 import cloudinary from 'cloudinary';
+import AppError from '../utils/AppError.js';
+import logger from '../utils/logger.js';
+
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -9,27 +10,26 @@ cloudinary.v2.config({
 });
 
 // Get all patients
-export const getAllPatients = async (req, res) => {
+export const getAllPatients = async (req, res, next) => {
   try {
     const { role } = req.user;
 
     if (role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
+      return next(new AppError('Access denied: Admin only', 403));
     }
 
     const patients = await executeQuery(
       'SELECT p.*, u.name, u.email, u.phone FROM patients p JOIN users u ON p.user_id = u.id'
     );
 
-    res.json({ patients });
+    res.json({ status: 'success', patients });
   } catch (error) {
-    console.error('Get patients error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get patient by ID
-export const getPatientById = async (req, res) => {
+export const getPatientById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const patient = await executeQuery(
@@ -38,18 +38,17 @@ export const getPatientById = async (req, res) => {
     );
 
     if (patient.length === 0) {
-      return res.status(404).json({ message: 'Patient not found' });
+      return next(new AppError('Patient not found', 404));
     }
 
-    res.json({ patient: patient[0] });
+    res.json({ status: 'success', patient: patient[0] });
   } catch (error) {
-    console.error('Get patient error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get patient profile (protected - own profile)
-export const getPatientProfile = async (req, res) => {
+export const getPatientProfile = async (req, res, next) => {
   try {
     const { id } = req.user;
     const patient = await executeQuery(
@@ -58,24 +57,22 @@ export const getPatientProfile = async (req, res) => {
     );
 
     if (patient.length === 0) {
-      return res.status(404).json({ message: 'Patient profile not found' });
+      return next(new AppError('Patient profile not found', 404));
     }
 
-    res.json({ patient: patient[0] });
+    res.json({ status: 'success', patient: patient[0] });
   } catch (error) {
-    console.error('Get patient profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update patient profile
-export const updatePatientProfile = async (req, res) => {
+export const updatePatientProfile = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { blood_type, date_of_birth, gender, medical_history, allergies, emergency_contact, emergency_phone } = req.body;
 
-    console.log("📤 [PATIENT PROFILE] Updating health info for user_id:", id);
-    console.log("📊 [PATIENT PROFILE] Health data:", { blood_type, date_of_birth, gender, medical_history, allergies, emergency_contact, emergency_phone });
+    logger.info(`📤 [PATIENT PROFILE] Updating health info for user_id: ${id}`);
 
     const result = await executeQuery(
       'UPDATE patients SET blood_type = ?, date_of_birth = ?, gender = ?, medical_history = ?, allergies = ?, emergency_contact = ?, emergency_phone = ? WHERE user_id = ?',
@@ -83,26 +80,23 @@ export const updatePatientProfile = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      console.error("❌ [PATIENT PROFILE] Patient profile not found for user_id:", id);
-      return res.status(404).json({ message: 'Patient profile not found' });
+      return next(new AppError('Patient profile not found', 404));
     }
 
-    console.log("✅ [PATIENT PROFILE] Health info updated successfully for user_id:", id);
-    res.json({ message: 'Patient profile updated successfully' });
+    logger.info(`✅ [PATIENT PROFILE] Health info updated for user_id: ${id}`);
+    res.json({ status: 'success', message: 'Patient profile updated successfully' });
   } catch (error) {
-    console.error('❌ [PATIENT PROFILE] Update patient profile error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update personal info (name, email, phone)
-export const updatePersonalInfo = async (req, res) => {
+export const updatePersonalInfo = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { name, email, phone, profileImage } = req.body;
 
-    console.log("📤 [PERSONAL INFO] Updating personal info for user_id:", id);
-    console.log("📊 [PERSONAL INFO] Personal data:", { name, email, phone, profileImage });
+    logger.info(`📤 [PERSONAL INFO] Updating info for user_id: ${id}`);
 
     // Check if email already exists for another user
     if (email) {
@@ -111,21 +105,18 @@ export const updatePersonalInfo = async (req, res) => {
         [email, id]
       );
       if (existingUser.length > 0) {
-        console.warn("⚠️ [PERSONAL INFO] Email already in use:", email);
-        return res.status(400).json({ message: 'Email already in use by another account' });
+        return next(new AppError('Email already in use by another account', 400));
       }
     }
 
-    // Handle profile image: upload, ignore, or delete
-    // If profileImage is the special string 'DELETE', remove the profile image (set NULL)
+    // Handle profile image deletion
     if (profileImage === 'DELETE') {
       const delRes = await executeQuery('UPDATE users SET profile_image = NULL WHERE id = ?', [id]);
-      if (delRes.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
-      console.log("✅ [PERSONAL INFO] Profile image removed for user_id:", id);
-      return res.json({ message: 'Profile image removed' });
+      if (delRes.affectedRows === 0) return next(new AppError('User not found', 404));
+      return res.json({ status: 'success', message: 'Profile image removed' });
     }
 
-    // Upload profile image to Cloudinary if provided (profileImage should be a URL or base64)
+    // Upload profile image to Cloudinary if provided
     let profileImageUrl = null;
     if (profileImage) {
       try {
@@ -135,8 +126,8 @@ export const updatePersonalInfo = async (req, res) => {
         });
         profileImageUrl = uploadResult.secure_url;
       } catch (cloudErr) {
-        console.error('Cloudinary upload error:', cloudErr);
-        return res.status(500).json({ message: 'Profile image upload failed', error: cloudErr.message });
+        logger.error(`❌ [PATIENT PROFILE] Cloudinary upload error: ${cloudErr.message}`);
+        return next(new AppError('Profile image upload failed', 500));
       }
     }
 
@@ -146,31 +137,27 @@ export const updatePersonalInfo = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      console.error("❌ [PERSONAL INFO] User not found for user_id:", id);
-      return res.status(404).json({ message: 'User not found' });
+      return next(new AppError('User not found', 404));
     }
 
-    console.log("✅ [PERSONAL INFO] Personal info updated successfully for user_id:", id);
-    res.json({ message: 'Personal information updated successfully' });
+    logger.info(`✅ [PERSONAL INFO] Information updated for user_id: ${id}`);
+    res.json({ status: 'success', message: 'Personal information updated successfully' });
   } catch (error) {
-    console.error('❌ [PERSONAL INFO] Update personal info error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update user settings (theme, notifications, etc.)
-export const updateSettings = async (req, res) => {
+export const updateSettings = async (req, res, next) => {
   try {
     const { id } = req.user;
     const { theme } = req.body;
 
-    console.log("📤 [SETTINGS] Updating settings for user_id:", id);
-    console.log("📊 [SETTINGS] Settings data:", { theme });
+    logger.info(`📤 [SETTINGS] Updating settings for user_id: ${id}`);
 
-    // Validate theme value
     const validThemes = ['light', 'dark', 'auto'];
     if (theme && !validThemes.includes(theme)) {
-      return res.status(400).json({ message: 'Invalid theme value. Must be light, dark, or auto' });
+      return next(new AppError('Invalid theme value. Must be light, dark, or auto', 400));
     }
 
     const result = await executeQuery(
@@ -179,50 +166,48 @@ export const updateSettings = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      console.error("❌ [SETTINGS] User not found for user_id:", id);
-      return res.status(404).json({ message: 'User not found' });
+      return next(new AppError('User not found', 404));
     }
 
-    console.log("✅ [SETTINGS] Settings updated successfully for user_id:", id);
-    res.json({ 
+    logger.info(`✅ [SETTINGS] Theme preference updated for user_id: ${id}`);
+    res.json({
+      status: 'success',
       message: 'Settings updated successfully',
-      theme 
+      theme
     });
   } catch (error) {
-    console.error('❌ [SETTINGS] Update settings error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Delete patient
-export const deletePatient = async (req, res) => {
+export const deletePatient = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { role } = req.user;
 
     if (role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
+      return next(new AppError('Access denied: Admin only', 403));
     }
 
-    // First delete related records
     const patient = await executeQuery('SELECT user_id FROM patients WHERE id = ?', [id]);
     if (patient.length === 0) {
-      return res.status(404).json({ message: 'Patient not found' });
+      return next(new AppError('Patient not found', 404));
     }
 
-    // Delete patient and cascade will handle related records
+    // Cascade delete is assumed to be handled by DB, but we delete the user account which should trigger it
+    const userId = patient[0].user_id;
     const result = await executeQuery('DELETE FROM patients WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Patient not found' });
+      return next(new AppError('Patient not found', 404));
     }
 
-    // Delete user account
-    await executeQuery('DELETE FROM users WHERE id = ?', [patient[0].user_id]);
+    await executeQuery('DELETE FROM users WHERE id = ?', [userId]);
 
-    res.json({ message: 'Patient deleted successfully' });
+    logger.info(`🗑️ [ADMIN] Patient ${id} and associated user ${userId} deleted`);
+    res.json({ status: 'success', message: 'Patient deleted successfully' });
   } catch (error) {
-    console.error('Delete patient error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };

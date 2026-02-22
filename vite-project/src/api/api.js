@@ -185,4 +185,14 @@ export const notificationAPI = {
   getDoctorPatients: () => axios.get('/notifications/doctor/patients'),
 };
 
+export const waitlistAPI = {
+  joinWaitlist: (data) => axios.post('/waitlist/join', data),
+  getStatus: (params) => axios.get('/waitlist/status', { params }),
+};
+
+export const adminAPI = {
+  getSettings: () => axios.get('/admin/settings'),
+  updateSettings: (settings) => axios.put('/admin/settings', { settings }),
+};
+
 export default axios;

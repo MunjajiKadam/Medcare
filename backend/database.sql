@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS appointments (
   status ENUM('scheduled', 'completed', 'cancelled', 'no_show') DEFAULT 'scheduled',
   notes TEXT,
   prescription_id INT,
+  is_virtual BOOLEAN DEFAULT FALSE,
+  meeting_link VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,

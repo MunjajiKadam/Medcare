@@ -1,9 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { executeQuery } from './config/database.js';
+import logger from './utils/logger.js';
+import errorMiddleware from './middleware/errorMiddleware.js';
 
-// Load environment variables early so modules that read process.env work
+// Load environment variables early
 dotenv.config();
 
 // Routes
@@ -21,14 +25,47 @@ import availabilityRoutes from './routes/availabilityRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import proxyRoutes from './routes/proxyRoutes.js';
+import waitlistRoutes from './routes/waitlistRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+// Security Middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Global Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+
+// Stricter Rate Limiter for Auth
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20, // 20 attempts per hour
+  message: { message: 'Too many authentication attempts, please try again after an hour' }
+});
+
+app.use('/api/', limiter);
+app.use('/api/auth', authLimiter);
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Respond to Private Network preflight requests (Chrome PNA)
+
+// Respond to Private Network preflight requests
 app.use((req, res, next) => {
   try {
     if (req.headers['access-control-request-private-network']) {
@@ -39,30 +76,27 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(cors({
-  origin: 'http://localhost:5173', // Frontend URL
-  credentials: true
-}));
+
 
 // Test database connection
 app.get('/api/health', async (req, res) => {
   try {
-    const result = await executeQuery('SELECT 1');
-    res.json({ 
-      status: 'OK', 
+    await executeQuery('SELECT 1');
+    res.json({
+      status: 'OK',
       database: 'Connected',
       message: 'Backend is running successfully'
     });
   } catch (error) {
-    res.status(500).json({ 
-      status: 'ERROR', 
+    res.status(500).json({
+      status: 'ERROR',
       database: 'Disconnected',
-      message: error.message 
+      message: error.message
     });
   }
 });
 
-// Routes
+// Routes Implementation
 app.use('/api/auth', authRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -74,33 +108,23 @@ app.use('/api/time-slots', timeSlotRoutes);
 app.use('/api/consultation-notes', consultationNotesRoutes);
 app.use('/api/diagnoses', diagnosisRoutes);
 app.use('/api/availability', availabilityRoutes);
-
 app.use('/api/payment', paymentRoutes);
 app.use('/api/proxy', proxyRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/waitlist', waitlistRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Root endpoint
 app.get('/api', (req, res) => {
   res.json({ message: 'MedCare Backend API v1.0' });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ 
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
+app.use(errorMiddleware);
 
-// Start server
 app.listen(PORT, () => {
-  console.log(`✓ MedCare Backend Server running on http://localhost:${PORT}`);
-  console.log(`✓ API Documentation: http://localhost:${PORT}/api`);
-  console.log(`✓ Health Check: http://localhost:${PORT}/api/health`);
+  logger.info(`✓ MedCare Backend Server running on http://localhost:${PORT}`);
+  logger.info(`✓ Health Check: http://localhost:${PORT}/api/health`);
 });

@@ -1,15 +1,19 @@
 import { executeQuery } from '../config/database.js';
+import AppError from '../utils/AppError.js';
+import logger from '../utils/logger.js';
 
 // Create time slot
-export const createTimeSlot = async (req, res) => {
+export const createTimeSlot = async (req, res, next) => {
   try {
     const { day_of_week, start_time, end_time } = req.body;
-    const doctorId = req.user.id;
+    const doctorUserId = req.user.id;
 
-    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorId]);
+    const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [doctorUserId]);
     if (doctor.length === 0) {
-      return res.status(400).json({ message: 'Doctor record not found' });
+      return next(new AppError('Doctor record not found', 404));
     }
+
+    logger.info(`📅 [TIME SLOT] Creating slot for doctor ${doctor[0].id}: ${day_of_week} ${start_time}-${end_time}`);
 
     const result = await executeQuery(
       'INSERT INTO doctor_time_slots (doctor_id, day_of_week, start_time, end_time, is_available) VALUES (?, ?, ?, ?, ?)',
@@ -17,23 +21,22 @@ export const createTimeSlot = async (req, res) => {
     );
 
     res.status(201).json({
+      status: 'success',
       message: 'Time slot created successfully',
       slotId: result.insertId
     });
   } catch (error) {
-    console.error('Create time slot error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get all time slots for a doctor
-export const getTimeSlots = async (req, res) => {
+export const getTimeSlots = async (req, res, next) => {
   try {
     const { doctorId } = req.params;
     const { doctor_id, date } = req.query;
     let id = doctorId || doctor_id;
 
-    // If no ID provided and user is authenticated as doctor, use their ID
     if (!id && req.user && req.user.role === 'doctor') {
       const doctor = await executeQuery('SELECT id FROM doctors WHERE user_id = ?', [req.user.id]);
       if (doctor.length > 0) {
@@ -42,43 +45,42 @@ export const getTimeSlots = async (req, res) => {
     }
 
     if (!id) {
-      return res.status(400).json({ message: 'Doctor ID is required' });
+      return next(new AppError('Doctor ID is required', 400));
     }
 
     let slots;
-    
-    // If date is provided, filter by day of week
     if (date) {
       const selectedDate = new Date(date);
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const dayOfWeek = daysOfWeek[selectedDate.getDay()];
-      
-      console.log(`📅 [TIME SLOTS] Fetching slots for doctor ${id} on ${dayOfWeek} (${date})`);
-      
+
+      logger.info(`📅 [TIME SLOT] Fetching slots for doctor ${id} on ${dayOfWeek} (${date})`);
+
       slots = await executeQuery(
         'SELECT * FROM doctor_time_slots WHERE doctor_id = ? AND day_of_week = ? AND is_available = TRUE ORDER BY start_time',
         [id, dayOfWeek]
       );
-      
-      console.log(`✅ [TIME SLOTS] Found ${slots.length} available slots for ${dayOfWeek}`);
     } else {
-      // Return all slots if no date specified
       slots = await executeQuery(
         'SELECT * FROM doctor_time_slots WHERE doctor_id = ? ORDER BY day_of_week, start_time',
         [id]
       );
     }
 
-    res.json({ slots });
+    res.json({ status: 'success', slots });
   } catch (error) {
-    console.error('Get time slots error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get all time slots (admin only)
-export const getAllTimeSlots = async (req, res) => {
+export const getAllTimeSlots = async (req, res, next) => {
   try {
+    const { role } = req.user;
+    if (role !== 'admin') {
+      return next(new AppError('Access denied: Admin only', 403));
+    }
+
     const slots = await executeQuery(
       `SELECT ts.*, d.id as doctor_id, u.name as doctor_name, d.specialization 
        FROM doctor_time_slots ts 
@@ -87,32 +89,30 @@ export const getAllTimeSlots = async (req, res) => {
        ORDER BY u.name, ts.day_of_week, ts.start_time`
     );
 
-    res.json({ slots });
+    res.json({ status: 'success', slots });
   } catch (error) {
-    console.error('Get all time slots error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Get time slot by ID
-export const getTimeSlotById = async (req, res) => {
+export const getTimeSlotById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const slot = await executeQuery('SELECT * FROM doctor_time_slots WHERE id = ?', [id]);
 
     if (slot.length === 0) {
-      return res.status(404).json({ message: 'Time slot not found' });
+      return next(new AppError('Time slot not found', 404));
     }
 
-    res.json({ slot: slot[0] });
+    res.json({ status: 'success', slot: slot[0] });
   } catch (error) {
-    console.error('Get time slot error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Update time slot
-export const updateTimeSlot = async (req, res) => {
+export const updateTimeSlot = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { day_of_week, start_time, end_time, is_available } = req.body;
@@ -123,30 +123,30 @@ export const updateTimeSlot = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Time slot not found' });
+      return next(new AppError('Time slot not found', 404));
     }
 
-    res.json({ message: 'Time slot updated successfully' });
+    logger.info(`✅ [TIME SLOT] Slot ${id} updated`);
+    res.json({ status: 'success', message: 'Time slot updated successfully' });
   } catch (error) {
-    console.error('Update time slot error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
 
 // Delete time slot
-export const deleteTimeSlot = async (req, res) => {
+export const deleteTimeSlot = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const result = await executeQuery('DELETE FROM doctor_time_slots WHERE id = ?', [id]);
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Time slot not found' });
+      return next(new AppError('Time slot not found', 404));
     }
 
-    res.json({ message: 'Time slot deleted successfully' });
+    logger.info(`🗑️ [TIME SLOT] Slot ${id} deleted`);
+    res.json({ status: 'success', message: 'Time slot deleted successfully' });
   } catch (error) {
-    console.error('Delete time slot error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    next(error);
   }
 };
