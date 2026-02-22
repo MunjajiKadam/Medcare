@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { appointmentAPI, doctorAPI, timeSlotAPI, paymentAPI } from "../../api/api";
 import { useTheme } from "../../context/ThemeContext";
 import Navbar from "../../components/Navbar";
@@ -18,6 +18,7 @@ export default function BookAppointment() {
   const [confirmed, setConfirmed] = useState(false);
   const [doctor, setDoctor] = useState(null);
   const [timeSlots, setTimeSlots] = useState([]);
+  const [bookedTimes, setBookedTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -50,6 +51,18 @@ export default function BookAppointment() {
   };
 
   useEffect(() => {
+    // Read prefilled state when navigated from quick-book
+    const locState = location.state || {};
+    if (locState.selectedDate) {
+      setSelectedDate(locState.selectedDate);
+    }
+    if (locState.selectedTime) {
+      setSelectedTime(locState.selectedTime);
+    }
+    if (locState.selectedDate && locState.selectedTime) {
+      // Jump to details step when both date/time are prefilled
+      setStep(3);
+    }
     const fetchDoctor = async () => {
       try {
         console.log("🔄 [BOOK APPOINTMENT] Fetching doctor with ID:", doctorId);
@@ -103,6 +116,17 @@ export default function BookAppointment() {
           } else {
             console.log("⚠️ [BOOK APPOINTMENT] No time slots available for this day");
             setTimeSlots([]);
+          }
+          // Also fetch already booked appointments for this doctor/date
+          try {
+            const apptRes = await appointmentAPI.getAppointments({ doctorId, date: selectedDate });
+            const appts = apptRes.data.appointments || [];
+            const booked = appts.map(a => a.appointment_time || a.appointmentTime || a.time || a.appointment_time);
+            setBookedTimes(booked.filter(Boolean));
+            console.log("📌 [BOOK APPOINTMENT] Booked times for date:", booked);
+          } catch (e) {
+            console.warn("⚠️ [BOOK APPOINTMENT] Failed to fetch booked appointments:", e);
+            setBookedTimes([]);
           }
         } catch (err) {
           console.error("❌ [BOOK APPOINTMENT] Error fetching time slots:", err);
@@ -452,7 +476,10 @@ export default function BookAppointment() {
                         const isToday = selectedDate === todayISO;
                         const now = new Date();
                         const nowMins = now.getHours() * 60 + now.getMinutes();
-                        const disabled = isToday && timeToMinutes(time) <= nowMins;
+                        const isPast = isToday && timeToMinutes(time) <= nowMins;
+                        const normalize = (t) => (t || '').toString().split(':').slice(0,2).join(':');
+                        const isBooked = bookedTimes.some(bt => normalize(bt) === normalize(time));
+                        const disabled = isPast || isBooked;
 
                         return (
                           <button
@@ -476,8 +503,8 @@ export default function BookAppointment() {
                               <div className="text-xs text-gray-500 dark:text-gray-400">30 min</div>
                             </div>
                             <div className="ml-2">
-                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedTime === time ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
-                                {disabled ? 'Past' : 'Book'}
+                              <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${selectedTime === time ? 'bg-purple-600 text-white' : isBooked ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                                {isPast ? 'Past' : isBooked ? 'Booked' : 'Book'}
                               </span>
                             </div>
                           </button>

@@ -18,7 +18,7 @@ export const joinWaitlist = async (req, res, next) => {
 
         // Check if already on waitlist
         const existing = await executeQuery(
-            'SELECT id FROM waitlist WHERE patient_id = ? AND doctor_id = ? AND date = ? AND status = ?',
+            'SELECT id FROM waitlist WHERE patient_id = ? AND doctor_id = ? AND preferred_date = ? AND status = ?',
             [patientRecordId, doctorId, date, 'active']
         );
 
@@ -27,7 +27,7 @@ export const joinWaitlist = async (req, res, next) => {
         }
 
         await executeQuery(
-            'INSERT INTO waitlist (patient_id, doctor_id, date) VALUES (?, ?, ?)',
+            'INSERT INTO waitlist (patient_id, doctor_id, preferred_date) VALUES (?, ?, ?)',
             [patientRecordId, doctorId, date]
         );
 
@@ -54,7 +54,7 @@ export const getWaitlistStatus = async (req, res, next) => {
         const patientRecordId = patient[0].id;
 
         const entry = await executeQuery(
-            'SELECT id FROM waitlist WHERE patient_id = ? AND doctor_id = ? AND date = ? AND status = ?',
+            'SELECT id FROM waitlist WHERE patient_id = ? AND doctor_id = ? AND preferred_date = ? AND status = ?',
             [patientRecordId, doctorId, date, 'active']
         );
 
@@ -71,7 +71,7 @@ export const getWaitlistStatus = async (req, res, next) => {
 export const notifyWaitlistedPatients = async (doctorId, date) => {
     try {
         const waitlisted = await executeQuery(
-            'SELECT w.*, u.id as user_id, u.name FROM waitlist w JOIN patients p ON w.patient_id = p.id JOIN users u ON p.user_id = u.id WHERE w.doctor_id = ? AND w.date = ? AND w.status = ?',
+            'SELECT w.*, u.id as user_id, u.name FROM waitlist w JOIN patients p ON w.patient_id = p.id JOIN users u ON p.user_id = u.id WHERE w.doctor_id = ? AND w.preferred_date = ? AND w.status = ?',
             [doctorId, date, 'active']
         );
 
@@ -81,7 +81,7 @@ export const notifyWaitlistedPatients = async (doctorId, date) => {
             await createNotification(
                 entry.user_id,
                 '📅 Appointment Slot Available!',
-                `A slot has just opened up for Dr. ${entry.name} on ${date}. Book it now before it's gone!`,
+                `A slot has just opened up on ${date}. Book it now before it's gone!`,
                 'appointment'
             );
 

@@ -15,6 +15,10 @@ export default function AllDoctors() {
   const [sortBy, setSortBy] = useState("name");
   const [doctors, setDoctors] = useState([]);
   const [doctorSlots, setDoctorSlots] = useState({});
+  const [scheduleModal, setScheduleModal] = useState({ open: false, doctor: null });
+  const [modalDate, setModalDate] = useState('');
+  const [modalSlots, setModalSlots] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
@@ -257,7 +261,7 @@ export default function AllDoctors() {
                     )}
 
                     {/* Availability */}
-                    <div className="text-sm space-y-2">
+                      <div className="text-sm space-y-2">
                       <div>
                         <span className={`inline-block px-3 py-1 rounded-full font-semibold ${isDark ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'}`}>
                           ✓ Available Tomorrow
@@ -274,6 +278,31 @@ export default function AllDoctors() {
                           <div className="text-xs text-gray-500">No slots tomorrow</div>
                         )}
                       </div>
+                    </div>
+                    {/* Quick View Schedule */}
+                    <div className="p-4 border-t">
+                      <button
+                        onClick={async () => {
+                          setScheduleModal({ open: true, doctor });
+                          // default date = tomorrow
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          const iso = tomorrow.toISOString().split('T')[0];
+                          setModalDate(iso);
+                          setModalLoading(true);
+                          try {
+                            const res = await timeSlotAPI.getTimeSlots({ doctor_id: doctor.id, date: iso });
+                            setModalSlots(res.data.slots || []);
+                          } catch (err) {
+                            setModalSlots([]);
+                          } finally {
+                            setModalLoading(false);
+                          }
+                        }}
+                        className="mt-3 w-full py-2 text-sm rounded-lg border-2 border-accent bg-background text-accent hover:bg-accent hover:text-white transition"
+                      >
+                        📆 View Full Schedule
+                      </button>
                     </div>
 
                     {/* Actions */}
@@ -311,6 +340,46 @@ export default function AllDoctors() {
             </div>
           )}
         </div>
+
+        {/* Schedule Modal */}
+        {scheduleModal.open && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black opacity-40" onClick={() => setScheduleModal({ open: false, doctor: null })}></div>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 z-50 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold">Schedule for Dr. {scheduleModal.doctor?.name}</h3>
+                <button onClick={() => setScheduleModal({ open: false, doctor: null })} className="text-sm px-3 py-1">✕</button>
+              </div>
+              <div className="mb-4">
+                <label className="text-sm block mb-1">Select Date</label>
+                <input type="date" value={modalDate} onChange={async (e) => {
+                  const val = e.target.value; setModalDate(val); setModalLoading(true);
+                  try { const res = await timeSlotAPI.getTimeSlots({ doctor_id: scheduleModal.doctor.id, date: val }); setModalSlots(res.data.slots || []); } catch (err) { setModalSlots([]); }
+                  setModalLoading(false);
+                }} className="p-2 border rounded" />
+              </div>
+              <div>
+                {modalLoading ? (
+                  <div>Loading slots...</div>
+                ) : modalSlots.length === 0 ? (
+                  <div className="text-sm text-gray-500">No available slots for this date.</div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {modalSlots.map((t, i) => (
+                      <button key={i} onClick={() => {
+                        // Navigate to book page with prefilled date/time
+                        navigate(`/patient/book/${scheduleModal.doctor.id}`, { state: { selectedDate: modalDate, selectedTime: t } });
+                        setScheduleModal({ open: false, doctor: null });
+                      }} className="p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm hover:bg-accent hover:text-white transition">
+                        {formatTime12Hour(t)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stats Section */}
         {filteredDoctors.length > 0 && (

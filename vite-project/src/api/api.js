@@ -40,7 +40,7 @@ export const appointmentAPI = {
   createAppointment: (data) => axios.post('/appointments', data),
 
   // Get all appointments
-  getAppointments: () => axios.get('/appointments'),
+  getAppointments: (params) => axios.get('/appointments', { params }),
 
   // Get appointment by ID
   getAppointmentById: (id) => axios.get(`/appointments/${id}`),

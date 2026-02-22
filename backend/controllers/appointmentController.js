@@ -79,6 +79,16 @@ export const createAppointment = async (req, res, next) => {
 export const getAppointments = async (req, res, next) => {
   try {
     const { role, id } = req.user;
+    const { doctorId, date } = req.query;
+    // If doctorId and date provided, return appointments for that doctor on that date
+    if (doctorId && date) {
+      const appointmentsForDate = await executeQuery(
+        'SELECT appointment_time, status FROM appointments WHERE doctor_id = ? AND appointment_date = ? AND status != ?',
+        [doctorId, date, 'cancelled']
+      );
+
+      return res.json({ status: 'success', appointments: appointmentsForDate });
+    }
     let appointments;
 
     if (role === 'patient') {
