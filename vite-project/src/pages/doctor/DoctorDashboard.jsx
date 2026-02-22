@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import AvailabilityModal from "../../components/Modals/AvailabilityModal";
 import { useNavigate } from "react-router-dom";
 import { formatTime12Hour } from "../../utils/timeFormat";
+import { Clock, Video } from "lucide-react";
 
 export default function DoctorDashboard({ title }) {
   const navigate = useNavigate();
@@ -18,13 +19,13 @@ export default function DoctorDashboard({ title }) {
   const [availabilityModal, setAvailabilityModal] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState("available");
 
-  const fetchAvailabilityStatus = async () => {
+  const fetchAvailabilityStatus = async (isMounted = true) => {
     try {
       const availRes = await doctorAPI.getProfile();
       if (availRes.data) {
-        if (mounted) setDoctorProfile(availRes.data);
+        if (isMounted) setDoctorProfile(availRes.data);
         if (availRes.data.availability_status) {
-          if (mounted) setAvailabilityStatus(availRes.data.availability_status);
+          if (isMounted) setAvailabilityStatus(availRes.data.availability_status);
         }
       }
     } catch (err) {
@@ -43,7 +44,7 @@ export default function DoctorDashboard({ title }) {
         if (mounted) setAppointments(appts.slice(0, 4));
 
         // Fetch availability status and profile
-        await fetchAvailabilityStatus();
+        await fetchAvailabilityStatus(mounted);
       } catch (err) {
         console.error('Failed to load doctor appointments', err);
       } finally {
@@ -162,11 +163,11 @@ export default function DoctorDashboard({ title }) {
             <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg sm:rounded-xl shadow-lg dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700">
               <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6">Availability Status</h2>
               <div className={`p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 ${availabilityStatus === 'available' ? 'border-green-500' :
-                  availabilityStatus === 'busy' ? 'border-yellow-500' : 'border-red-500'
+                availabilityStatus === 'busy' ? 'border-yellow-500' : 'border-red-500'
                 }`}>
                 <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">Status</p>
                 <p className={`font-semibold text-sm sm:text-base ${availabilityStatus === 'available' ? 'text-green-600 dark:text-green-400' :
-                    availabilityStatus === 'busy' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
+                  availabilityStatus === 'busy' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                   }`}>
                   {availabilityStatus === 'available' && '🟢 Online & Accepting'}
                   {availabilityStatus === 'busy' && '🟡 Busy'}
@@ -202,7 +203,7 @@ export default function DoctorDashboard({ title }) {
             onClose={() => setAvailabilityModal(false)}
             onSuccess={async (updatedStatus) => {
               setAvailabilityStatus(updatedStatus);
-              await fetchAvailabilityStatus(); // Refresh from server to ensure consistency
+              await fetchAvailabilityStatus(true); // Refresh from server to ensure consistency
               setAvailabilityModal(false);
             }}
           />

@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { executeQuery } from './config/database.js';
 import logger from './utils/logger.js';
 import errorMiddleware from './middleware/errorMiddleware.js';
@@ -44,26 +43,10 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// Global Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { message: 'Too many requests from this IP, please try again after 15 minutes' }
-});
-
-// Stricter Rate Limiter for Auth
-const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 20, // 20 attempts per hour
-  message: { message: 'Too many authentication attempts, please try again after an hour' }
-});
-
-app.use('/api/', limiter);
-app.use('/api/auth', authLimiter);
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // Respond to Private Network preflight requests
 app.use((req, res, next) => {

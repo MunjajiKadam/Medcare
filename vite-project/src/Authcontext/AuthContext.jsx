@@ -23,48 +23,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Cleanup on tab/browser close only (not on refresh)
-  useEffect(() => {
-    // Mark that the session is active
-    sessionStorage.setItem("sessionActive", "true");
 
-    const handleVisibilityChange = () => {
-      // When user navigates away or closes tab
-      if (document.visibilityState === "hidden") {
-        sessionStorage.setItem("sessionActive", "false");
-      }
-    };
-
-    const handlePageHide = () => {
-      // Clear auth data only on actual tab/browser close
-      // This doesn't fire on refresh, only on close
-      if (sessionStorage.getItem("sessionActive") === "false") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
-    };
-
-    const handleLoad = () => {
-      // Reset session active flag on page load
-      sessionStorage.setItem("sessionActive", "true");
-    };
-
-    // Add event listeners
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("load", handleLoad);
-
-    // Cleanup event listeners
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("load", handleLoad);
-    };
-  }, []);
 
   const login = async (email, password, userType) => {
     try {
-      const response = await axios.post("/auth/login", { 
+      const response = await axios.post("/auth/login", {
         email,
         password,
         role: userType,
